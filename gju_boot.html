@@ -1572,8 +1572,10 @@
                 select.prevValue = "";
                 updateSelectColor(select);
             });
+            // 추가 행 제거
+            document.querySelectorAll('#schedule-tbody tr.extra-row').forEach(tr => tr.remove());
             updateAllocationStatus();
-            saveToFirebase(); // Firebase에 초기화 상태 저장
+            saveToFirebase();
             window.closeResetModal();
         };
 
@@ -2288,37 +2290,131 @@
             else if (val.includes('[2학기]')) selectElement.classList.add('sel-course-2');
         }
 
+        // === + 버튼: 같은 날짜에 추가 행 삽입 ===
+        const sem1Options = `<option value="">과정 선택</option>
+            <option>[1학기] 프롬프트엔지니어링(15H)</option>
+            <option>[1학기] 클라우드입문(15H)</option>
+            <option>[1학기] ML/딥러닝 기초(15H)</option>
+            <option>[1학기] LLM 애플리케이션(30H)</option>
+            <option>[1학기] 제조설비 AI모델링(30H)</option>
+            <option>[1학기] AI Data 분석(15H)</option>`;
+        const sem2Options = `<option value="">과정 선택</option>
+            <option>[2학기] AI 디자인 씽킹(15H)</option>
+            <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+            <option>[2학기] MLOps(15H)</option>
+            <option>[2학기] Cloud Native(15H)</option>
+            <option>[2학기] Digital Twin(30H)</option>`;
+        const managerOptions = `<option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>`;
+
+        function createExtraRow(date) {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-50 transition border-b border-slate-200 extra-row';
+            tr.dataset.date = date;
+            tr.innerHTML = `
+                <td class="p-2 border-r border-slate-200 text-center text-xs text-slate-400 italic">↳ 추가</td>
+                <td class="p-2 border-r border-slate-200 text-center text-xs text-slate-400"></td>
+                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">${sem1Options}</select>
+                </td>
+                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">${managerOptions}</select>
+                </td>
+                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">${sem2Options}</select>
+                </td>
+                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">${managerOptions}</select>
+                </td>
+                <td class="p-2 text-xs text-center">
+                    <button class="remove-row-btn text-red-400 hover:text-red-600 transition text-xs" title="행 삭제">✕</button>
+                </td>`;
+            // 삭제 버튼
+            tr.querySelector('.remove-row-btn').addEventListener('click', () => {
+                tr.remove();
+                saveToFirebase();
+                updateAllocationStatus();
+            });
+            // select 이벤트 등록
+            bindSelectEvents(tr.querySelectorAll('select'));
+            return tr;
+        }
+
+        window.addExtraRow = function(date) {
+            // 해당 날짜의 마지막 행 찾기
+            const allRows = document.querySelectorAll(`#schedule-tbody tr[data-date="${date}"]`);
+            const lastRow = allRows[allRows.length - 1];
+            const newRow = createExtraRow(date);
+            lastRow.after(newRow);
+            saveToFirebase();
+        };
+
         // === FIREBASE REALTIME SYNC LOGIC ===
         let isSyncing = false; 
         let auth, db, appId;
 
+        function collectState() {
+            const state = { rows: [] };
+            // 추가 행 정보 저장
+            document.querySelectorAll('#schedule-tbody tr.extra-row').forEach(tr => {
+                const sels = tr.querySelectorAll('select');
+                state.rows.push({
+                    date: tr.dataset.date,
+                    v: Array.from(sels).map(s => s.value)
+                });
+            });
+            // 기본 행 select 값 저장
+            document.querySelectorAll('#schedule-tbody tr[data-date]:not(.extra-row)').forEach(tr => {
+                const sels = tr.querySelectorAll('select');
+                const dateKey = `base_${tr.dataset.date}`;
+                state[dateKey] = Array.from(sels).map(s => s.value);
+            });
+            return state;
+        }
+
         async function saveToFirebase() {
             if (isSyncing || !auth || !auth.currentUser || !db) return;
-            const selects = document.querySelectorAll('#schedule-tbody select');
-            const state = {};
-            selects.forEach((sel, index) => {
-                state[`sel_${index}`] = sel.value;
-            });
-            
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedule', 'global_state');
-                await setDoc(docRef, state);
+                await setDoc(docRef, collectState());
             } catch(e) { 
                 console.error("Firebase save error", e); 
             }
         }
 
         function applySharedState(data) {
-            isSyncing = true; 
-            const selects = document.querySelectorAll('#schedule-tbody select');
-            selects.forEach((sel, index) => {
-                const key = `sel_${index}`;
-                if (data[key] !== undefined && sel.value !== data[key]) {
-                    sel.value = data[key];
-                    sel.prevValue = data[key]; 
-                    updateSelectColor(sel);
+            isSyncing = true;
+
+            // 기본 행 복원
+            document.querySelectorAll('#schedule-tbody tr[data-date]:not(.extra-row)').forEach(tr => {
+                const dateKey = `base_${tr.dataset.date}`;
+                if (data[dateKey]) {
+                    const sels = tr.querySelectorAll('select');
+                    data[dateKey].forEach((val, i) => {
+                        if (sels[i] && sels[i].value !== val) {
+                            sels[i].value = val;
+                            sels[i].prevValue = val;
+                            updateSelectColor(sels[i]);
+                        }
+                    });
                 }
             });
+
+            // 기존 추가 행 제거 후 재생성
+            document.querySelectorAll('#schedule-tbody tr.extra-row').forEach(tr => tr.remove());
+            if (data.rows && Array.isArray(data.rows)) {
+                data.rows.forEach(rowData => {
+                    const allRows = document.querySelectorAll(`#schedule-tbody tr[data-date="${rowData.date}"]:not(.extra-row)`);
+                    if (!allRows.length) return;
+                    const lastRow = allRows[allRows.length - 1];
+                    const newRow = createExtraRow(rowData.date);
+                    const sels = newRow.querySelectorAll('select');
+                    rowData.v.forEach((val, i) => {
+                        if (sels[i]) { sels[i].value = val; updateSelectColor(sels[i]); }
+                    });
+                    lastRow.after(newRow);
+                });
+            }
+
             updateAllocationStatus();
             isSyncing = false;
         }
@@ -2366,24 +2462,12 @@
             }
         }
 
-        // Initialize DOM events
-        document.addEventListener('DOMContentLoaded', () => {
-            if(document.getElementById('view-detail').classList.contains('active')) {
-                window.showTrack('common');
-            }
-
-            // URL 데이터 로드 로직 제거 (일정 코드 텍스트 공유 방식으로 대체됨)
-
-            const scheduleSelects = document.querySelectorAll('#schedule-tbody select');
-            scheduleSelects.forEach(select => {
-                if (select.options.length > 1 && select.options[1].value.includes('학기')) {
+        function bindSelectEvents(selects) {
+            selects.forEach(select => {
+                if (select.options.length > 1 && select.options[1] && select.options[1].value.includes('학기')) {
                     select.classList.add('course-select');
                     select.prevValue = select.value;
-                    
-                    select.addEventListener('focus', function() {
-                        this.prevValue = this.value;
-                    });
-                    
+                    select.addEventListener('focus', function() { this.prevValue = this.value; });
                     select.addEventListener('change', function() {
                         if (isSyncing) return;
                         const val = this.value;
@@ -2391,28 +2475,64 @@
                             const counts = getCounts();
                             if (counts[val] > courseLimits[val]) {
                                 showWarningToast(val, courseLimits[val]);
-                                this.value = this.prevValue; 
-                                updateSelectColor(this); 
-                                return; 
+                                this.value = this.prevValue;
+                                updateSelectColor(this);
+                                return;
                             }
                         }
                         this.prevValue = this.value;
                         updateSelectColor(this);
                         updateAllocationStatus();
-                        saveToFirebase(); // Firebase 동기화
+                        saveToFirebase();
                     });
                 } else {
                     select.addEventListener('change', function() {
                         if (isSyncing) return;
                         updateSelectColor(this);
-                        saveToFirebase(); // Firebase 동기화
+                        saveToFirebase();
                     });
                 }
                 updateSelectColor(select);
             });
-            
+        }
+
+        // Initialize DOM events
+        document.addEventListener('DOMContentLoaded', () => {
+            if(document.getElementById('view-detail').classList.contains('active')) {
+                window.showTrack('common');
+            }
+
+            // 날짜 행에 data-date 속성 및 + 버튼 자동 삽입
+            const datePattern = /^\d{2}\.\d{2}$/;
+            document.querySelectorAll('#schedule-tbody tr').forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                // 날짜 셀 찾기 (공휴일 행 제외)
+                let dateTd = null;
+                tds.forEach(td => {
+                    if (datePattern.test(td.textContent.trim())) dateTd = td;
+                });
+                if (!dateTd) return;
+                const date = dateTd.textContent.trim();
+                tr.dataset.date = date;
+
+                // 비고 셀(마지막 td)에 + 버튼 추가
+                const lastTd = tds[tds.length - 1];
+                // 공휴일 행은 colspan 있으므로 스킵
+                if (tr.querySelector('select')) {
+                    const addBtn = document.createElement('button');
+                    addBtn.className = 'add-row-btn ml-1 text-blue-400 hover:text-blue-600 transition font-bold text-sm';
+                    addBtn.title = '이 날짜에 과목 추가';
+                    addBtn.textContent = '+';
+                    addBtn.addEventListener('click', () => window.addExtraRow(date));
+                    lastTd.appendChild(addBtn);
+                }
+            });
+
+            // 기본 select 이벤트 등록
+            bindSelectEvents(document.querySelectorAll('#schedule-tbody select'));
+
             updateAllocationStatus();
-            initFirebase(); 
+            initFirebase();
         });
     </script>
 </body>
