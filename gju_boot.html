@@ -294,7 +294,7 @@
                         <i class="fas fa-spinner fa-spin mr-1"></i>클라우드 연결 중...
                     </span>
                 </div>
-                <p class="mb-6 text-slate-600 text-sm md:text-base">2026년 4월 27일부터 5월 29일까지 진행되는 5주간의 강의 일정입니다. 빈칸에 과목과 담당자를 선택하여 진도를 기입하세요.</p>
+                <p class="mb-6 text-slate-600 text-sm md:text-base">1학기는 2026년 4월 27일부터 5월 29일까지, 2학기는 날짜를 직접 선택하여 일정을 관리하세요.</p>
                 
                 <!-- Allocation Dashboard -->
                 <div id="allocation-dashboard-container" class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -311,21 +311,24 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto rounded-xl shadow-sm border border-slate-200">
-                    <table class="w-full border-collapse bg-white">
-                        <thead>
-                            <tr class="bg-slate-800 text-white text-sm tracking-wider text-center">
-                                <th class="p-3 border border-slate-700 font-semibold" style="width: 5%;">주차</th>
-                                <th class="p-3 border border-slate-700 font-semibold" style="width: 8%;">날짜</th>
-                                <th class="p-3 border border-slate-700 font-semibold" style="width: 5%;">요일</th>
-                                <th class="p-3 border border-slate-700 bg-blue-900 font-bold text-blue-100" style="width: 25%;">1학기 과정</th>
-                                <th class="p-3 border border-slate-700 bg-blue-800 font-bold text-blue-100" style="width: 10%;">담당</th>
-                                <th class="p-3 border border-slate-700 bg-indigo-900 font-bold text-indigo-100" style="width: 25%;">2학기 과정</th>
-                                <th class="p-3 border border-slate-700 bg-indigo-800 font-bold text-indigo-100" style="width: 10%;">담당</th>
-                                <th class="p-3 border border-slate-700 font-semibold" style="width: 12%;">비고</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-sm text-slate-700" id="schedule-tbody">
+                <!-- 1학기 테이블 -->
+                <div id="sem1-section" class="mb-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-lg font-extrabold text-blue-800 flex items-center"><i class="fas fa-calendar-alt mr-2"></i>1학기 일정 <span class="ml-2 text-sm font-normal text-slate-500">2026.04.27 ~ 05.29</span></h3>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl shadow-sm border border-slate-200">
+                        <table class="w-full border-collapse bg-white">
+                            <thead>
+                                <tr class="bg-blue-900 text-white text-sm tracking-wider text-center">
+                                    <th class="p-3 border border-blue-800 font-semibold" style="width:6%">주차</th>
+                                    <th class="p-3 border border-blue-800 font-semibold" style="width:9%">날짜</th>
+                                    <th class="p-3 border border-blue-800 font-semibold" style="width:5%">요일</th>
+                                    <th class="p-3 border border-blue-800 font-bold" style="width:35%">과정</th>
+                                    <th class="p-3 border border-blue-800 font-bold" style="width:15%">담당</th>
+                                    <th class="p-3 border border-blue-800 font-semibold" style="width:30%">비고</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm text-slate-700" id="sem1-tbody">
                             <!-- Week 1 -->
                             <tr class="hover:bg-slate-50 transition border-b border-slate-200">
                                 <td class="p-2 border-r border-slate-200 font-bold bg-slate-100 text-slate-800 text-center" rowspan="5">1주차</td>
@@ -1182,7 +1185,36 @@
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
+
+                <!-- 2학기 테이블 -->
+                <div id="sem2-section">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-lg font-extrabold text-indigo-800 flex items-center"><i class="fas fa-calendar-alt mr-2"></i>2학기 일정 <span class="ml-2 text-sm font-normal text-slate-500">날짜를 클릭하여 선택하세요</span></h3>
+                        <button onclick="addSem2Row()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-bold transition flex items-center shadow-sm">
+                            <i class="fas fa-plus mr-1.5"></i>날짜 추가
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl shadow-sm border border-slate-200">
+                        <table class="w-full border-collapse bg-white">
+                            <thead>
+                                <tr class="bg-indigo-900 text-white text-sm tracking-wider text-center">
+                                    <th class="p-3 border border-indigo-800 font-semibold" style="width:9%">날짜</th>
+                                    <th class="p-3 border border-indigo-800 font-semibold" style="width:5%">요일</th>
+                                    <th class="p-3 border border-indigo-800 font-bold" style="width:40%">과정</th>
+                                    <th class="p-3 border border-indigo-800 font-bold" style="width:15%">담당</th>
+                                    <th class="p-3 border border-indigo-800 font-semibold" style="width:25%">비고</th>
+                                    <th class="p-3 border border-indigo-800 font-semibold" style="width:6%"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm text-slate-700" id="sem2-tbody">
+                                <!-- JS로 동적 생성 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -1566,14 +1598,11 @@
         };
 
         window.executeReset = function() {
-            const scheduleSelects = document.querySelectorAll('#schedule-tbody select');
-            scheduleSelects.forEach(select => {
-                select.value = "";
-                select.prevValue = "";
-                updateSelectColor(select);
+            document.querySelectorAll('#sem1-tbody select').forEach(select => {
+                select.value = ""; select.prevValue = ""; updateSelectColor(select);
             });
-            // 추가 행 제거
-            document.querySelectorAll('#schedule-tbody tr.extra-row').forEach(tr => tr.remove());
+            document.querySelectorAll('#sem1-tbody tr.extra-row').forEach(tr => tr.remove());
+            document.querySelectorAll('#sem2-tbody tr').forEach(tr => tr.remove());
             updateAllocationStatus();
             saveToFirebase();
             window.closeResetModal();
@@ -2248,13 +2277,11 @@
         };
 
         function getCounts() {
-            const selects = document.querySelectorAll('.course-select');
+            const selects = document.querySelectorAll('.course-select, .sem2-course');
             let counts = {};
             Object.keys(courseLimits).forEach(k => counts[k] = 0);
             selects.forEach(sel => {
-                if (sel.value && counts[sel.value] !== undefined) {
-                    counts[sel.value]++;
-                }
+                if (sel.value && counts[sel.value] !== undefined) counts[sel.value]++;
             });
             return counts;
         }
@@ -2306,23 +2333,77 @@
             <option>[2학기] Digital Twin(30H)</option>`;
         const managerOptions = `<option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>`;
 
+        const DAYS = ['일','월','화','수','목','금','토'];
+
+        // 날짜 문자열(YYYY-MM-DD)로 요일 반환
+        function getDayLabel(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return isNaN(d) ? '' : DAYS[d.getDay()];
+        }
+
+        // 2학기 행 생성
+        function createSem2Row(rowId, dateVal, courseVal, managerVal, noteVal) {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-50 transition border-b border-slate-200';
+            tr.dataset.sem2id = rowId;
+            const dayLabel = getDayLabel(dateVal);
+            tr.innerHTML = `
+                <td class="p-1 border-r border-slate-200 text-center">
+                    <input type="date" class="sem2-date text-xs text-slate-700 border border-slate-200 rounded px-1 py-0.5 cursor-pointer w-full" value="${dateVal || ''}">
+                </td>
+                <td class="p-2 border-r border-slate-200 text-center text-xs sem2-day">${dayLabel}</td>
+                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                    <select class="sem2-course w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">${sem2Options}</select>
+                </td>
+                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                    <select class="sem2-manager w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">${managerOptions}</select>
+                </td>
+                <td class="p-1 border-r border-slate-200">
+                    <input type="text" class="sem2-note w-full text-xs text-slate-600 border-none outline-none bg-transparent px-2" placeholder="비고" value="${noteVal || ''}">
+                </td>
+                <td class="p-2 text-center">
+                    <button class="sem2-remove text-red-400 hover:text-red-600 text-xs font-bold transition">✕</button>
+                </td>`;
+            // 날짜 변경 시 요일 자동 업데이트
+            tr.querySelector('.sem2-date').addEventListener('change', function() {
+                tr.querySelector('.sem2-day').textContent = getDayLabel(this.value);
+                saveToFirebase();
+            });
+            tr.querySelector('.sem2-course').value = courseVal || '';
+            tr.querySelector('.sem2-manager').value = managerVal || '';
+            updateSelectColor(tr.querySelector('.sem2-course'));
+            updateSelectColor(tr.querySelector('.sem2-manager'));
+            tr.querySelector('.sem2-course').addEventListener('change', function() {
+                updateSelectColor(this); updateAllocationStatus(); saveToFirebase();
+            });
+            tr.querySelector('.sem2-manager').addEventListener('change', function() {
+                updateSelectColor(this); saveToFirebase();
+            });
+            tr.querySelector('.sem2-note').addEventListener('change', () => saveToFirebase());
+            tr.querySelector('.sem2-remove').addEventListener('click', () => {
+                tr.remove(); saveToFirebase(); updateAllocationStatus();
+            });
+            return tr;
+        }
+
+        window.addSem2Row = function(dateVal, courseVal, managerVal, noteVal) {
+            const tbody = document.getElementById('sem2-tbody');
+            const rowId = Date.now();
+            tbody.appendChild(createSem2Row(rowId, dateVal, courseVal, managerVal, noteVal));
+            saveToFirebase();
+        };
+
         function createExtraRow(date) {
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-slate-50 transition border-b border-slate-200 extra-row';
             tr.dataset.date = date;
             tr.innerHTML = `
-                <td class="p-2 border-r border-slate-200 text-center text-xs text-slate-400 italic">↳ 추가</td>
-                <td class="p-2 border-r border-slate-200 text-center text-xs text-slate-400"></td>
+                <td class="p-2 border-r border-slate-200 text-center text-xs text-slate-400 italic" colspan="2">↳ 추가</td>
                 <td class="p-1 border-r border-slate-200 bg-blue-50/20">
                     <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">${sem1Options}</select>
                 </td>
                 <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
-                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">${managerOptions}</select>
-                </td>
-                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
-                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">${sem2Options}</select>
-                </td>
-                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
                     <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">${managerOptions}</select>
                 </td>
                 <td class="p-2 text-xs text-center">
@@ -2340,8 +2421,7 @@
         }
 
         window.addExtraRow = function(date) {
-            // 해당 날짜의 마지막 행 찾기
-            const allRows = document.querySelectorAll(`#schedule-tbody tr[data-date="${date}"]`);
+            const allRows = document.querySelectorAll(`#sem1-tbody tr[data-date="${date}"]`);
             const lastRow = allRows[allRows.length - 1];
             const newRow = createExtraRow(date);
             lastRow.after(newRow);
@@ -2353,20 +2433,26 @@
         let auth, db, appId;
 
         function collectState() {
-            const state = { rows: [] };
-            // 추가 행 정보 저장
-            document.querySelectorAll('#schedule-tbody tr.extra-row').forEach(tr => {
+            const state = { rows: [], sem2rows: [] };
+            // 1학기 추가 행
+            document.querySelectorAll('#sem1-tbody tr.extra-row').forEach(tr => {
                 const sels = tr.querySelectorAll('select');
-                state.rows.push({
-                    date: tr.dataset.date,
-                    v: Array.from(sels).map(s => s.value)
-                });
+                state.rows.push({ date: tr.dataset.date, v: Array.from(sels).map(s => s.value) });
             });
-            // 기본 행 select 값 저장
-            document.querySelectorAll('#schedule-tbody tr[data-date]:not(.extra-row)').forEach(tr => {
+            // 1학기 기본 행
+            document.querySelectorAll('#sem1-tbody tr[data-date]:not(.extra-row)').forEach(tr => {
                 const sels = tr.querySelectorAll('select');
-                const dateKey = `base_${tr.dataset.date}`;
-                state[dateKey] = Array.from(sels).map(s => s.value);
+                state[`base_${tr.dataset.date}`] = Array.from(sels).map(s => s.value);
+            });
+            // 2학기 행
+            document.querySelectorAll('#sem2-tbody tr[data-sem2id]').forEach(tr => {
+                state.sem2rows.push({
+                    id: tr.dataset.sem2id,
+                    date: tr.querySelector('.sem2-date').value,
+                    course: tr.querySelector('.sem2-course').value,
+                    manager: tr.querySelector('.sem2-manager').value,
+                    note: tr.querySelector('.sem2-note').value
+                });
             });
             return state;
         }
@@ -2384,8 +2470,8 @@
         function applySharedState(data) {
             isSyncing = true;
 
-            // 기본 행 복원
-            document.querySelectorAll('#schedule-tbody tr[data-date]:not(.extra-row)').forEach(tr => {
+            // 1학기 기본 행 복원
+            document.querySelectorAll('#sem1-tbody tr[data-date]:not(.extra-row)').forEach(tr => {
                 const dateKey = `base_${tr.dataset.date}`;
                 if (data[dateKey]) {
                     const sels = tr.querySelectorAll('select');
@@ -2399,11 +2485,11 @@
                 }
             });
 
-            // 기존 추가 행 제거 후 재생성
-            document.querySelectorAll('#schedule-tbody tr.extra-row').forEach(tr => tr.remove());
+            // 1학기 추가 행 제거 후 재생성
+            document.querySelectorAll('#sem1-tbody tr.extra-row').forEach(tr => tr.remove());
             if (data.rows && Array.isArray(data.rows)) {
                 data.rows.forEach(rowData => {
-                    const allRows = document.querySelectorAll(`#schedule-tbody tr[data-date="${rowData.date}"]:not(.extra-row)`);
+                    const allRows = document.querySelectorAll(`#sem1-tbody tr[data-date="${rowData.date}"]:not(.extra-row)`);
                     if (!allRows.length) return;
                     const lastRow = allRows[allRows.length - 1];
                     const newRow = createExtraRow(rowData.date);
@@ -2412,6 +2498,15 @@
                         if (sels[i]) { sels[i].value = val; updateSelectColor(sels[i]); }
                     });
                     lastRow.after(newRow);
+                });
+            }
+
+            // 2학기 행 제거 후 재생성
+            document.querySelectorAll('#sem2-tbody tr').forEach(tr => tr.remove());
+            if (data.sem2rows && Array.isArray(data.sem2rows)) {
+                data.sem2rows.forEach(r => {
+                    const tbody = document.getElementById('sem2-tbody');
+                    tbody.appendChild(createSem2Row(r.id, r.date, r.course, r.manager, r.note));
                 });
             }
 
@@ -2502,11 +2597,28 @@
                 window.showTrack('common');
             }
 
+            // 1학기 테이블에서 2학기 컬럼(4,5번째 td) 자동 제거
+            document.querySelectorAll('#sem1-tbody tr').forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                // 일반 수업 행: td가 7개 (주차,날짜,요일,1학기과정,1학기담당,2학기과정,2학기담당,비고) → 2학기 td 제거
+                // 공휴일 행은 colspan 있으므로 select 없는 행 스킵
+                if (!tr.querySelector('select')) return;
+                // td 인덱스: 주차(0또는없음), 날짜, 요일, 1학기과정, 1학기담당, 2학기과정, 2학기담당, 비고
+                // 주차 td가 있는 행(rowspan)과 없는 행 구분
+                const allTds = Array.from(tr.querySelectorAll('td'));
+                // 2학기 과정 select가 있는 td 찾아서 제거
+                allTds.forEach(td => {
+                    const sel = td.querySelector('select');
+                    if (sel && (sel.innerHTML.includes('[2학기]'))) {
+                        td.remove();
+                    }
+                });
+            });
+
             // 날짜 행에 data-date 속성 및 + 버튼 자동 삽입
             const datePattern = /^\d{2}\.\d{2}$/;
-            document.querySelectorAll('#schedule-tbody tr').forEach(tr => {
+            document.querySelectorAll('#sem1-tbody tr').forEach(tr => {
                 const tds = tr.querySelectorAll('td');
-                // 날짜 셀 찾기 (공휴일 행 제외)
                 let dateTd = null;
                 tds.forEach(td => {
                     if (datePattern.test(td.textContent.trim())) dateTd = td;
@@ -2515,9 +2627,7 @@
                 const date = dateTd.textContent.trim();
                 tr.dataset.date = date;
 
-                // 비고 셀(마지막 td)에 + 버튼 추가
                 const lastTd = tds[tds.length - 1];
-                // 공휴일 행은 colspan 있으므로 스킵
                 if (tr.querySelector('select')) {
                     const addBtn = document.createElement('button');
                     addBtn.className = 'add-row-btn ml-1 text-blue-400 hover:text-blue-600 transition font-bold text-sm';
@@ -2529,7 +2639,7 @@
             });
 
             // 기본 select 이벤트 등록
-            bindSelectEvents(document.querySelectorAll('#schedule-tbody select'));
+            bindSelectEvents(document.querySelectorAll('#sem1-tbody select'));
 
             updateAllocationStatus();
             initFirebase();
