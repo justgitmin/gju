@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>첨단분야 인재양성 부트캠프 웹 계획서</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding-top: 70px; /* Navbar height compensation */
+        }
+        /* Navigation Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1e293b;
+            color: white;
+            z-index: 50;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .nav-btn {
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+        .nav-btn:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.05);
+        }
+        .nav-btn.active {
+            color: #38bdf8;
+            border-bottom-color: #38bdf8;
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        /* View Management */
+        .view-section {
+            display: none;
+        }
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Utilities */
+        .day-badge-on { @apply font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded text-xs border border-indigo-100 min-w-[70px] text-center inline-block; }
+        .day-badge-off { @apply font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-xs border border-slate-200 min-w-[70px] text-center inline-block; }
+        
+        /* Select Reset */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="%2364748b" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4H4z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 4px center;
+            padding-right: 1.5rem !important;
+        }
+        select:focus {
+            outline: 2px solid #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* Dynamic Select Colors */
+        .sel-course-1 { background-color: #eff6ff !important; color: #1d4ed8 !important; font-weight: bold; border-radius: 0.25rem; }
+        .sel-course-2 { background-color: #e0e7ff !important; color: #4338ca !important; font-weight: bold; border-radius: 0.25rem; }
+        .sel-manager-eu { background-color: #f3e8ff !important; color: #7e22ce !important; font-weight: bold; border-radius: 0.25rem; }
+        .sel-manager-pe { background-color: #d1fae5 !important; color: #047857 !important; font-weight: bold; border-radius: 0.25rem; }
+        .sel-manager-aws { background-color: #ffedd5 !important; color: #c2410c !important; font-weight: bold; border-radius: 0.25rem; }
+        .sel-manager-nhn { background-color: #dbeafe !important; color: #1e40af !important; font-weight: bold; border-radius: 0.25rem; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
+
+    <!-- Toast Notification (Dynamic) -->
+    <div id="toast-message" class="fixed top-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl transition-all duration-300 opacity-0 -translate-y-4 pointer-events-none z-[100] flex items-center font-bold text-white">
+        <i id="toast-icon" class="mr-2"></i>
+        <span id="toast-text" class="whitespace-pre-line text-center">메시지</span>
+    </div>
+
+    <!-- Reset Confirm Modal -->
+    <div id="reset-modal" class="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300" id="reset-modal-content">
+            <h3 class="text-lg font-bold text-slate-800 mb-2"><i class="fas fa-undo-alt mr-2 text-red-500"></i>일정 초기화</h3>
+            <p class="text-slate-600 text-sm mb-6">배정된 모든 강의 일정을 정말로 초기화하시겠습니까?<br>이 작업은 되돌릴 수 없으며 접속한 모든 사용자에게 반영됩니다.</p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeResetModal()" class="px-4 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer">취소</button>
+                <button onclick="executeReset()" class="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors cursor-pointer">초기화 진행</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar flex items-center justify-center sm:justify-start px-4 sm:px-8">
+        <div class="flex items-center mr-8 hidden md:flex">
+            <i class="fas fa-graduation-cap text-2xl text-blue-400 mr-2"></i>
+            <span class="font-extrabold text-xl tracking-tight">부트캠프 <span class="font-light text-slate-400">Hub</span></span>
+        </div>
+        <div class="flex space-x-2 overflow-x-auto">
+            <button class="nav-btn active whitespace-nowrap" onclick="switchView('home')" id="nav-home">홈</button>
+            <button class="nav-btn whitespace-nowrap" onclick="switchView('schedule')" id="nav-schedule">강의 일정표</button>
+            <button class="nav-btn whitespace-nowrap" onclick="switchView('daily')" id="nav-daily">일차별 커리큘럼</button>
+            <button class="nav-btn whitespace-nowrap" onclick="switchView('detail')" id="nav-detail">상세 일차별 설계</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <div class="max-w-6xl mx-auto p-4 md:p-8">
+        
+        <!-- ==========================================
+             VIEW 1: 홈 (Home)
+             ========================================== -->
+        <div id="view-home" class="view-section active">
+            <div class="bg-white shadow-xl rounded-2xl overflow-hidden mb-8">
+                <!-- Header -->
+                <header class="bg-gradient-to-r from-blue-900 to-indigo-800 text-white p-10">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="inline-block py-1 px-3 rounded-full bg-blue-700 text-blue-100 text-sm font-semibold tracking-wider mb-4 border border-blue-500">
+                                2026 첨단분야 인재양성 사업 - 광주대학교
+                            </span>
+                            <h1 class="text-4xl font-extrabold mb-2 leading-tight">AI·클라우드 부트캠프 실행 계획서</h1>
+                        </div>
+                        <div class="hidden md:flex flex-col items-end space-y-2">
+                            <div class="bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/20 text-right">
+                                <p class="text-xs text-blue-200">총 교육 시간 (1일 3시간 기준)</p>
+                                <p class="text-2xl font-bold">210 <span class="text-base font-normal">시간 (70일차)</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Executive Summary -->
+                <section class="p-10 border-b border-slate-100">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6 border-l-4 border-indigo-600 pl-3">핵심 운영 전략</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-indigo-50 rounded-xl p-6 border border-indigo-100 hover:-translate-y-1 transition duration-300">
+                            <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-xl mb-4 shadow-md">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h3 class="font-bold text-lg mb-2 text-indigo-900">1. 통합 AI 플랫폼 'weeai' 도입</h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                비전공자의 코딩 장벽을 해소하기 위해 AI 에이전트 통합 플랫폼 <strong>weeai</strong>를 전면 도입합니다. 복잡한 환경 설정 없이 다양한 LLM을 테스트하고, 맞춤형 AI를 직관적으로 구축합니다.
+                            </p>
+                        </div>
+                        <div class="bg-blue-50 rounded-xl p-6 border border-blue-100 hover:-translate-y-1 transition duration-300">
+                            <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xl mb-4 shadow-md">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            <h3 class="font-bold text-lg mb-2 text-blue-900">2. AWS & NHN Cloud 산학협력</h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                글로벌 표준인 <strong>AWS</strong>와 국내 공공/금융 인프라를 주도하는 <strong>NHN Cloud</strong>를 동시 활용하는 멀티 클라우드 커리큘럼을 구성하여 실무 중심의 인프라 구축 역량을 강화합니다.
+                            </p>
+                        </div>
+                        <div class="bg-emerald-50 rounded-xl p-6 border border-emerald-100 hover:-translate-y-1 transition duration-300">
+                            <div class="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center text-white text-xl mb-4 shadow-md">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-900">3. 1일 3시간 모듈형 실습</h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                모든 교과목은 <strong>하루 3시간(1일차) 단위</strong>로 블록화되어 있습니다. 온라인 선행 이론 1일과 나머지 실무 오프라인 실습을 통해 효율적인 블렌디드 러닝을 구현합니다.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Curriculum Table Overview -->
+                <section class="p-10 bg-slate-50">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6 border-l-4 border-indigo-600 pl-3">과정 요약표 (일 3H 단위)</h2>
+                    <div class="overflow-x-auto rounded-xl shadow-sm border border-slate-200">
+                        <table class="w-full text-left border-collapse bg-white">
+                            <thead>
+                                <tr class="bg-slate-200 text-slate-700 text-sm uppercase tracking-wider">
+                                    <th class="p-4 font-semibold w-1/5">과정 구분</th>
+                                    <th class="p-4 font-semibold w-2/5">세부 교과목명</th>
+                                    <th class="p-4 font-semibold text-center w-1/12">학기</th>
+                                    <th class="p-4 font-semibold text-center w-1/12">시수(일수)</th>
+                                    <th class="p-4 font-semibold text-center w-1/4">핵심 활용 기술</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                <!-- 공통 -->
+                                <tr class="border-b border-slate-200 hover:bg-slate-50 transition">
+                                    <td class="p-4 font-bold text-indigo-700 border-r border-slate-100" rowspan="2">공통(초급)</td>
+                                    <td class="p-4 font-medium text-orange-600">프롬프트엔지니어링(몰입)</td>
+                                    <td class="p-4 text-center">1</td>
+                                    <td class="p-4 text-center font-semibold">15 (5일)</td>
+                                    <td class="p-4 text-center"><span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">weeai</span>, ChatGPT</td>
+                                </tr>
+                                <tr class="border-b border-slate-200 hover:bg-slate-50 transition">
+                                    <td class="p-4 font-medium text-orange-600">AI 디자인 씽킹(몰입)</td>
+                                    <td class="p-4 text-center">2</td>
+                                    <td class="p-4 text-center font-semibold">15 (5일)</td>
+                                    <td class="p-4 text-center"><span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">weeai</span>, Miro</td>
+                                </tr>
+
+                                <!-- AI 데이터 SW -->
+                                <tr class="border-b border-slate-200 hover:bg-slate-50 transition">
+                                    <td class="p-4 font-bold text-blue-700 border-r border-slate-100" rowspan="6">AI 데이터SW(컴공)</td>
+                                    <td class="p-4 font-medium text-blue-700">클라우드입문 (몰입)</td>
+                                    <td class="p-4 text-center">1</td>
+                                    <td class="p-4 text-center font-semibold">15 (5일)</td>
+                                    <td class="p-4 text-center"><span class="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">AWS</span></td>
+                                </tr>
+                                <tr class="border-b border-slate-200 hover:bg-slate-50 transition">
+                                    <td class="p-4 font-medium text-orange-600">ML/딥러닝 기초</td>
+                                    <td class="p-4 text-center">1</td>
+                                    <td class="p-4 text-center font-semibold">15 (5일)</td>
+                                    <td class="p-4 text-center">Teachable Machine</td>
+                                </tr>
+                                <tr class="border-b border-slate-200 hover:bg-slate-50 transition">
+                                    <td class="p-4 font-medium text-blue-700">LLM 애플리케이션(몰입)</td>
+                                    <td class="p-4 text-center">1</td>
+                                    <td class="p-4 text-center font-semibold">30 (10일)</td>
+                                    <td class="p-4 text-center"><span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">weeai</span>, Python</td>
+                                </tr>
+                                <tr class="border-b border-slate-200 hover:bg-slate-50 transition">
+                                    <td class="p-4 font-medium text-blue-700">NHN/AWS 멀티 클라우드 운영(몰입)</td>
+                                    <td class="p-4 text-center">2</td>
+                                    <td class="p-4 text-center font-semibold">15 (5일)</td>
+                                    <td class="p-4 text-center"><span class="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">AWS</span>, <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">NHN Cloud</span></td>
+                                </tr>
+                                <tr class="border-b border-slate-200 hover:bg-slate-50 transition">
+                                    <td class="p-4 font-medium text-blue-700">MLOps(몰입)</td>
+                                    <td class="p-4 text-center">2</td>
+                                    <td class="p-4 text-center font-semibold">15 (5일)</td>
+                                    <td class="p-4 text-center">Hugging Face, Github</td>
+                                </tr>
+                                <tr class="border-b border-slate-200 hover:bg-slate-50 transition">
+                                    <td class="p-4 font-medium text-blue-700">Cloud Native 아키텍처(몰입)</td>
+                                    <td class="p-4 text-center">2</td>
+                                    <td class="p-4 text-center font-semibold">15 (5일)</td>
+                                    <td class="p-4 text-center">Docker, Linux, NHN Cloud</td>
+                                </tr>
+                                
+                                <!-- 제조 AI -->
+                                <tr class="border-b border-slate-200 hover:bg-slate-50 transition">
+                                    <td class="p-4 font-bold text-emerald-700 border-r border-slate-100" rowspan="2">제조AI<br>(기계자동차)</td>
+                                    <td class="p-4 font-medium text-blue-700">제조설비 AI모델링</td>
+                                    <td class="p-4 text-center">1</td>
+                                    <td class="p-4 text-center font-semibold">30 (10일)</td>
+                                    <td class="p-4 text-center">Google Colab, Python</td>
+                                </tr>
+                                <tr class="border-b border-slate-300 hover:bg-slate-50 transition">
+                                    <td class="p-4 font-medium text-blue-700">Digital Twin 기반 공정 시뮬레이션</td>
+                                    <td class="p-4 text-center">2</td>
+                                    <td class="p-4 text-center font-semibold">30 (10일)</td>
+                                    <td class="p-4 text-center">Python, SimPy</td>
+                                </tr>
+                                
+                                <!-- 건축 -->
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="p-4 font-bold text-rose-700 border-r border-slate-100">AIAD(건축)</td>
+                                    <td class="p-4 font-medium text-red-600">AI Data 분석 및 시각화</td>
+                                    <td class="p-4 text-center">1</td>
+                                    <td class="p-4 text-center font-semibold">15 (5일)</td>
+                                    <td class="p-4 text-center">Python, Folium, Matplotlib</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-slate-800 text-white">
+                                    <td colspan="3" class="p-4 text-right font-bold tracking-wider">총계(시수)</td>
+                                    <td class="p-4 text-center font-extrabold text-lg text-yellow-400">210</td>
+                                    <td class="p-4"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             VIEW 1.5: 강의 일정표 (Schedule)
+             ========================================== -->
+        <div id="view-schedule" class="view-section">
+            <div class="bg-white shadow-xl rounded-2xl p-6 md:p-10 mb-8">
+                <div class="flex items-center mb-2">
+                    <h2 class="text-3xl font-extrabold text-slate-800">과정 전체 일정표</h2>
+                    <span id="sync-status" class="ml-4 px-3 py-1 bg-slate-100 text-slate-500 text-xs rounded-full font-semibold border border-slate-200">
+                        <i class="fas fa-spinner fa-spin mr-1"></i>클라우드 연결 중...
+                    </span>
+                </div>
+                <p class="mb-6 text-slate-600 text-sm md:text-base">2026년 4월 27일부터 5월 29일까지 진행되는 5주간의 강의 일정입니다. 빈칸에 과목과 담당자를 선택하여 진도를 기입하세요.</p>
+                
+                <!-- Allocation Dashboard -->
+                <div id="allocation-dashboard-container" class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-3 gap-2">
+                        <h3 class="font-bold text-slate-700 text-sm flex items-center"><i class="fas fa-chart-pie mr-2 text-indigo-500"></i>과정별 시수 배정 현황 (1일=3H)</h3>
+                        <div class="flex gap-2">
+                            <button onclick="resetSchedule()" class="px-3 py-1.5 bg-white text-slate-600 border border-slate-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded text-xs font-bold transition-all flex items-center shadow-sm">
+                                <i class="fas fa-undo-alt mr-1.5"></i>전체 초기화
+                            </button>
+                        </div>
+                    </div>
+                    <div id="allocation-dashboard" class="flex flex-wrap gap-2">
+                        <!-- Badges injected here via JS -->
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl shadow-sm border border-slate-200">
+                    <table class="w-full border-collapse bg-white">
+                        <thead>
+                            <tr class="bg-slate-800 text-white text-sm tracking-wider text-center">
+                                <th class="p-3 border border-slate-700 font-semibold" style="width: 5%;">주차</th>
+                                <th class="p-3 border border-slate-700 font-semibold" style="width: 8%;">날짜</th>
+                                <th class="p-3 border border-slate-700 font-semibold" style="width: 5%;">요일</th>
+                                <th class="p-3 border border-slate-700 bg-blue-900 font-bold text-blue-100" style="width: 25%;">1학기 과정</th>
+                                <th class="p-3 border border-slate-700 bg-blue-800 font-bold text-blue-100" style="width: 10%;">담당</th>
+                                <th class="p-3 border border-slate-700 bg-indigo-900 font-bold text-indigo-100" style="width: 25%;">2학기 과정</th>
+                                <th class="p-3 border border-slate-700 bg-indigo-800 font-bold text-indigo-100" style="width: 10%;">담당</th>
+                                <th class="p-3 border border-slate-700 font-semibold" style="width: 12%;">비고</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm text-slate-700" id="schedule-tbody">
+                            <!-- Week 1 -->
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-bold bg-slate-100 text-slate-800 text-center" rowspan="5">1주차</td>
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">04.27</td>
+                                <td class="p-2 border-r border-slate-200 text-center">월</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">04.28</td>
+                                <td class="p-2 border-r border-slate-200 text-center">화</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">04.29</td>
+                                <td class="p-2 border-r border-slate-200 text-center">수</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">04.30</td>
+                                <td class="p-2 border-r border-slate-200 text-center">목</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-300 border-b-2">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.01</td>
+                                <td class="p-2 border-r border-slate-200 text-center">금</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-500 font-semibold text-center">근로자의 날</td>
+                            </tr>
+
+                            <!-- Week 2 -->
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-bold bg-slate-100 text-slate-800 text-center" rowspan="5">2주차</td>
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.04</td>
+                                <td class="p-2 border-r border-slate-200 text-center">월</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="bg-red-50 hover:bg-red-100 transition border-b border-red-200 text-red-600 font-bold">
+                                <td class="p-2 border-r border-red-200 text-center">05.05</td>
+                                <td class="p-2 border-r border-red-200 text-center">화</td>
+                                <td class="p-2 border-r border-red-200 text-center" colspan="4">어린이날 (휴강)</td>
+                                <td class="p-2 text-xs text-center">법정공휴일</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.06</td>
+                                <td class="p-2 border-r border-slate-200 text-center">수</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.07</td>
+                                <td class="p-2 border-r border-slate-200 text-center">목</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-300 border-b-2">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.08</td>
+                                <td class="p-2 border-r border-slate-200 text-center">금</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+
+                            <!-- Week 3 -->
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-bold bg-slate-100 text-slate-800 text-center" rowspan="5">3주차</td>
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.11</td>
+                                <td class="p-2 border-r border-slate-200 text-center">월</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.12</td>
+                                <td class="p-2 border-r border-slate-200 text-center">화</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.13</td>
+                                <td class="p-2 border-r border-slate-200 text-center">수</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.14</td>
+                                <td class="p-2 border-r border-slate-200 text-center">목</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-300 border-b-2">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.15</td>
+                                <td class="p-2 border-r border-slate-200 text-center">금</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+
+                            <!-- Week 4 -->
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-bold bg-slate-100 text-slate-800 text-center" rowspan="5">4주차</td>
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.18</td>
+                                <td class="p-2 border-r border-slate-200 text-center">월</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.19</td>
+                                <td class="p-2 border-r border-slate-200 text-center">화</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.20</td>
+                                <td class="p-2 border-r border-slate-200 text-center">수</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.21</td>
+                                <td class="p-2 border-r border-slate-200 text-center">목</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-300 border-b-2">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.22</td>
+                                <td class="p-2 border-r border-slate-200 text-center">금</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+
+                            <!-- Week 5 -->
+                            <tr class="bg-red-50 hover:bg-red-100 transition border-b border-red-200 text-red-600 font-bold">
+                                <td class="p-2 border-r border-slate-200 font-bold bg-slate-100 text-slate-800 text-center" rowspan="5">5주차</td>
+                                <td class="p-2 border-r border-red-200 text-center">05.25</td>
+                                <td class="p-2 border-r border-red-200 text-center">월</td>
+                                <td class="p-2 border-r border-red-200 text-center" colspan="4">부처님오신날 대체공휴일 (휴강)</td>
+                                <td class="p-2 text-xs text-center">법정공휴일</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.26</td>
+                                <td class="p-2 border-r border-slate-200 text-center">화</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.27</td>
+                                <td class="p-2 border-r border-slate-200 text-center">수</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.28</td>
+                                <td class="p-2 border-r border-slate-200 text-center">목</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-400 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                                <td class="p-2 border-r border-slate-200 font-medium text-center">05.29</td>
+                                <td class="p-2 border-r border-slate-200 text-center">금</td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[1학기] 프롬프트엔지니어링(15H)</option>
+                                        <option>[1학기] 클라우드입문(15H)</option>
+                                        <option>[1학기] ML/딥러닝 기초(15H)</option>
+                                        <option>[1학기] LLM 애플리케이션(30H)</option>
+                                        <option>[1학기] 제조설비 AI모델링(30H)</option>
+                                        <option>[1학기] AI Data 분석(15H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-blue-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/20">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs cursor-pointer px-2">
+                                        <option value="">과정 선택</option>
+                                        <option>[2학기] AI 디자인 씽킹(15H)</option>
+                                        <option>[2학기] NHN/AWS 멀티클라우드(15H)</option>
+                                        <option>[2학기] MLOps(15H)</option>
+                                        <option>[2학기] Cloud Native(15H)</option>
+                                        <option>[2학기] Digital Twin(30H)</option>
+                                    </select>
+                                </td>
+                                <td class="p-1 border-r border-slate-200 bg-indigo-50/40 text-center">
+                                    <select class="w-full bg-transparent outline-none border-none text-slate-700 text-xs font-semibold cursor-pointer px-1">
+                                        <option value="">-</option><option>으뜸</option><option>페픽</option><option>AWS</option><option>NHN</option>
+                                    </select>
+                                </td>
+                                <td class="p-2 text-xs text-slate-500 font-semibold text-center">일정 종료</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             VIEW 2: 일차별 커리큘럼 (Daily Breakdown Overview)
+             ========================================== -->
+        <div id="view-daily" class="view-section">
+            <div class="bg-white shadow-xl rounded-2xl p-10">
+                <h2 class="text-3xl font-extrabold text-slate-800 mb-8 border-b-2 border-slate-100 pb-4">상세 커리큘럼 명세서 <span class="text-lg font-normal text-slate-500 ml-2">(요약 목록)</span></h2>
+                
+                <!-- Track 1 -->
+                <div class="mb-10">
+                    <h3 class="text-xl font-extrabold text-indigo-800 mb-4 flex items-center bg-indigo-50 p-3 rounded-lg"><i class="fas fa-layer-group mr-3"></i> 공통(초급)</h3>
+                    <div class="space-y-4 pl-4 border-l-2 border-indigo-100 ml-2">
+                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                            <h4 class="font-bold text-lg text-slate-800 mb-3 flex justify-between">1. [1학기] 프롬프트엔지니어링(몰입) <span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded text-slate-600">15H (5일) / 온3:오프12</span></h4>
+                            <ul class="text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">1~2일차(오프)</span> <div>오리엔테이션, LLM 원리 이해, 좋은 프롬프트 3요소 및 비교 실습</div></li>
+                                <li class="flex items-start"><span class="day-badge-on mr-3 mt-0.5">3일차(온)</span> <div>역할/맥락 부여, 형식 지정 및 CoT(단계별 사고) 프롬프팅 학습</div></li>
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">4~5일차(오프)</span> <div>상황별 실전 프롬프트 적용 및 나만의 프롬프트 북 제작/발표</div></li>
+                            </ul>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                            <h4 class="font-bold text-lg text-slate-800 mb-3 flex justify-between">2. [2학기] AI 디자인 씽킹(몰입) <span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded text-slate-600">15H (5일) / 온3:오프12</span></h4>
+                            <ul class="text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">1일차(오프)</span> <div>오리엔테이션, 주변 문제 정의 및 협업 툴(Miro) 세팅 안내</div></li>
+                                <li class="flex items-start"><span class="day-badge-on mr-3 mt-0.5">2일차(온)</span> <div>디자인 씽킹 프로세스 이해 및 AI 기획 트렌드 분석</div></li>
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">3~5일차(오프)</span> <div>weeai 활용 CJ 도출, 아이디에이션, 프로토타이핑 및 MVP 발표</div></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Track 2 -->
+                <div class="mb-10">
+                    <h3 class="text-xl font-extrabold text-blue-800 mb-4 flex items-center bg-blue-50 p-3 rounded-lg"><i class="fas fa-network-wired mr-3"></i> AI 데이터SW(컴공)</h3>
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 pl-4 border-l-2 border-blue-100 ml-2">
+                        
+                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                            <h4 class="font-bold text-lg text-slate-800 mb-3 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">1. [1학기] 클라우드입문 (몰입) <span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded text-slate-600 shrink-0">15H (5일) / 온3:오프12</span></h4>
+                            <ul class="text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">1일차(오프)</span> <div>오리엔테이션, AWS 계정 생성 및 첫 가상머신(EC2) 생성 맛보기</div></li>
+                                <li class="flex items-start"><span class="day-badge-on mr-3 mt-0.5">2일차(온)</span> <div>클라우드 필수 개념(IaaS/PaaS) 및 기본 아키텍처 이해</div></li>
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">3~5일차(오프)</span> <div>EC2 접속, IAM 보안, S3 호스팅 및 VPC 네트워크 실습</div></li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                            <h4 class="font-bold text-lg text-slate-800 mb-3 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">2. [1학기] ML/딥러닝 기초 <span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded text-slate-600 shrink-0">15H (5일) / 온3:오프12</span></h4>
+                            <ul class="text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">1일차(오프)</span> <div>오리엔테이션, 티처블머신 환경 세팅 및 객체 분류 모델 기초 실습</div></li>
+                                <li class="flex items-start"><span class="day-badge-on mr-3 mt-0.5">2일차(온)</span> <div>지도/비지도 학습 개념, 분류/회귀 이해, 전처리 및 평가 방법론</div></li>
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">3~5일차(오프)</span> <div>오렌지 데이터 마이닝 설치, 데이터 정제 및 코딩 없는 모델 시각화</div></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white border border-purple-200 bg-purple-50/30 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                            <h4 class="font-bold text-lg text-slate-800 mb-3 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2"><span>3. [1학기] LLM 애플리케이션(몰입) <i class="fas fa-star text-yellow-400"></i></span> <span class="text-sm font-normal bg-purple-100 px-2 py-1 rounded text-purple-700 shrink-0">30H (10일) / 온3:오프27</span></h4>
+                            <ul class="text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">1일차(오프)</span> <div>오리엔테이션, 파이썬 환경(Colab) 구성, API Key 발급 및 테스트</div></li>
+                                <li class="flex items-start"><span class="day-badge-on mr-3 mt-0.5">2일차(온)</span> <div>파이썬 기초(변수/조건문/함수), 외부 라이브러리 및 JSON 개념 학습</div></li>
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">3~10일차(오프)</span> <div>weeai 연동 터미널 챗봇, RAG 파이프라인 구축 및 Streamlit 웹 배포</div></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                            <h4 class="font-bold text-lg text-slate-800 mb-3 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">4. [2학기] NHN/AWS 멀티 클라우드 운영 <span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded text-slate-600 shrink-0">15H (5일) / 온3:오프12</span></h4>
+                            <ul class="text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">1일차(오프)</span> <div>오리엔테이션, NHN Cloud 콘솔 접속 및 네트워크(VPC) 맛보기 실습</div></li>
+                                <li class="flex items-start"><span class="day-badge-on mr-3 mt-0.5">2일차(온)</span> <div>K-클라우드 동향, NHN-AWS 용어 비교 및 아키텍처 보안 이론</div></li>
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">3~5일차(오프)</span> <div>NHN Cloud 실 인프라 구성, 로드밸런서 구축 및 멀티 클라우드 장애대응</div></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                            <h4 class="font-bold text-lg text-slate-800 mb-3 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">5. [2학기] MLOps(몰입) <span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded text-slate-600 shrink-0">15H (5일) / 온3:오프12</span></h4>
+                            <ul class="text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">1일차(오프)</span> <div>오리엔테이션, Git/Github 기초 세팅, 계정 연동 및 파이썬 소스 Push 실습</div></li>
+                                <li class="flex items-start"><span class="day-badge-on mr-3 mt-0.5">2일차(온)</span> <div>DevOps/MLOps 차이점 및 AI 모델 배포(Serving) 파이프라인 이론</div></li>
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">3~5일차(오프)</span> <div>Hugging Face 모델 탐색, Gradio UI 연동 및 Spaces 웹 서비스 실 배포</div></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                            <h4 class="font-bold text-lg text-slate-800 mb-3 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">6. [2학기] Cloud Native 아키텍처 <span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded text-slate-600 shrink-0">15H (5일) / 온3:오프12</span></h4>
+                            <ul class="text-sm text-slate-600 space-y-2">
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">1일차(오프)</span> <div>오리엔테이션, Docker Desktop 세팅 및 Nginx 컨테이너 띄우기 실습</div></li>
+                                <li class="flex items-start"><span class="day-badge-on mr-3 mt-0.5">2일차(온)</span> <div>모놀리식 vs MSA, 컨테이너 개념, Docker 생명주기 및 네트워크 이해</div></li>
+                                <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">3~5일차(오프)</span> <div>Docker 명령어 실습, 컨테이너 패키징 및 NHN Cloud 환경 실 배포</div></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Track 3 & 4 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Track 3 -->
+                    <div>
+                        <h3 class="text-xl font-extrabold text-emerald-800 mb-4 flex items-center bg-emerald-50 p-3 rounded-lg"><i class="fas fa-industry mr-3"></i> 제조AI(기계자동차)</h3>
+                        <div class="space-y-4 pl-4 border-l-2 border-emerald-100 ml-2">
+                            <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                                <h4 class="font-bold text-lg text-slate-800 mb-3 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">1. [1학기] 제조설비 AI모델링 <span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded text-slate-600 shrink-0">30H (10일) / 온3:오프27</span></h4>
+                                <ul class="text-sm text-slate-600 space-y-2">
+                                    <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">1~3일차(오프)</span> <div>제조 현장 이해, 센서 데이터 파악 및 파이썬 데이터 읽기 기초</div></li>
+                                    <li class="flex items-start"><span class="day-badge-on mr-3 mt-0.5">4일차(온)</span> <div>센서 데이터 그래프 시각화 및 해석 분석에 집중</div></li>
+                                    <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">5~10일차(오프)</span> <div>결측치 전처리, 이상 탐지 모델 학습/평가 및 결과물 발표</div></li>
+                                </ul>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                                <h4 class="font-bold text-lg text-slate-800 mb-3 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">2. [2학기] Digital Twin 기반 공정 시뮬레이션 <span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded text-slate-600 shrink-0">30H (10일) / 온3:오프27</span></h4>
+                                <ul class="text-sm text-slate-600 space-y-2">
+                                    <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">1~3일차(오프)</span> <div>DT 개념 이해, 아날로그 공정 체험 및 Python(SimPy) 기초 세팅</div></li>
+                                    <li class="flex items-start"><span class="day-badge-on mr-3 mt-0.5">4일차(온)</span> <div>단순 공정(기계 1대) 시뮬레이션 코드 실행 및 결과 데이터 파악</div></li>
+                                    <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">5~10일차(오프)</span> <div>병목 현상 분석, 파라미터 최적화 실험, 결과 시각화 및 미니 프로젝트 발표</div></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Track 4 -->
+                    <div>
+                        <h3 class="text-xl font-extrabold text-rose-800 mb-4 flex items-center bg-rose-50 p-3 rounded-lg"><i class="fas fa-building mr-3"></i> AIAD(건축)</h3>
+                        <div class="space-y-4 pl-4 border-l-2 border-rose-100 ml-2">
+                            <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+                                <h4 class="font-bold text-lg text-slate-800 mb-3 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">1. [1학기] AI Data 분석 및 시각화 <span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded text-slate-600 shrink-0">15H (5일) / 온3:오프12</span></h4>
+                                <ul class="text-sm text-slate-600 space-y-2">
+                                    <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">1~2일차(오프)</span> <div>오리엔테이션 및 "건축 의사결정"의 이해, 완성된 데이터셋 탐색 실습</div></li>
+                                    <li class="flex items-start"><span class="day-badge-on mr-3 mt-0.5">3일차(온)</span> <div>Matplotlib 기초 및 용도별 건물 그래프 시각화, 상관관계 분석</div></li>
+                                    <li class="flex items-start"><span class="day-badge-off mr-3 mt-0.5">4~5일차(오프)</span> <div>Folium 공간 지도(좌표) 맵핑 실습 및 건축 의사결정 데이터 발표</div></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             VIEW 3: 상세 일차별 설계 (Detailed Daily Table)
+             ========================================== -->
+        <div id="view-detail" class="view-section">
+            <div class="bg-white shadow-xl rounded-2xl p-6 md:p-10 min-h-[600px]">
+                <h2 class="text-3xl font-extrabold text-slate-800 mb-2">상세 일차별 설계</h2>
+                <p class="mb-6 text-slate-600 text-sm md:text-base">아래 대분류(트랙)를 선택한 후, 나타나는 상세 교과목을 클릭하여 1일 3시간 시간표를 확인하세요.</p>
+                
+                <!-- Track Selectors (대분류) -->
+                <div class="flex flex-wrap gap-2 md:gap-3 border-b border-slate-200 pb-4 mb-4">
+                    <button onclick="showTrack('common')" id="btn-common" class="px-4 py-2 rounded-lg font-bold text-sm border transition-all cursor-pointer bg-indigo-100 text-indigo-800 border-indigo-300 shadow-md ring-1 ring-indigo-400">공통(초급)</button>
+                    <button onclick="showTrack('data')" id="btn-data" class="px-4 py-2 rounded-lg font-bold text-sm border transition-all cursor-pointer bg-white text-blue-600 border-blue-200 hover:bg-blue-50">AI 데이터SW(컴공)</button>
+                    <button onclick="showTrack('factory')" id="btn-factory" class="px-4 py-2 rounded-lg font-bold text-sm border transition-all cursor-pointer bg-white text-emerald-600 border-emerald-200 hover:bg-emerald-50">제조AI(기계자동차)</button>
+                    <button onclick="showTrack('arch')" id="btn-arch" class="px-4 py-2 rounded-lg font-bold text-sm border transition-all cursor-pointer bg-white text-rose-600 border-rose-200 hover:bg-rose-50">AIAD(건축)</button>
+                </div>
+
+                <!-- Course Sub-menu Selectors (소분류 - 동적 생성) -->
+                <div id="course-selector-container" class="flex flex-wrap gap-2 mb-8 hidden p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <!-- Javascript will inject sub-buttons here -->
+                </div>
+
+                <!-- Dynamic Detail Content Container -->
+                <div id="detailed-content-container">
+                    <!-- Javascript will inject the single course table here -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase Config -->
+    <script>
+        const __firebase_config = JSON.stringify({
+            apiKey: "AIzaSyANPrIr15MOuZizIgDRGvM8g7heWxNeF1A",
+            authDomain: "gju-boot.firebaseapp.com",
+            projectId: "gju-boot",
+            storageBucket: "gju-boot.firebasestorage.app",
+            messagingSenderId: "711739159996",
+            appId: "1:711739159996:web:60b6abf5338f825e2b27b9"
+        });
+        const __app_id = "gju-bootcamp-schedule";
+        const __initial_auth_token = null;
+    </script>
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // === Toast Notification ===
+        window.showToast = function(message, type = 'warning') {
+            const toast = document.getElementById('toast-message');
+            const icon = document.getElementById('toast-icon');
+            const text = document.getElementById('toast-text');
+
+            text.innerText = message;
+
+            if (type === 'warning') {
+                toast.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl transition-all duration-300 z-[100] flex items-center font-bold text-white bg-red-600/95 backdrop-blur opacity-100 translate-y-0';
+                icon.className = 'fas fa-exclamation-triangle mr-2 text-yellow-300';
+            } else {
+                toast.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl transition-all duration-300 z-[100] flex items-center font-bold text-white bg-emerald-600/95 backdrop-blur opacity-100 translate-y-0';
+                icon.className = 'fas fa-check-circle mr-2 text-emerald-200';
+            }
+
+            setTimeout(() => {
+                toast.classList.replace('opacity-100', 'opacity-0');
+                toast.classList.replace('translate-y-0', '-translate-y-4');
+                toast.classList.add('pointer-events-none');
+            }, 3000);
+        };
+
+        function showWarningToast(courseName, max) {
+            const cleanName = courseName.split('(')[0];
+            window.showToast(`${cleanName} 과정은 최대 ${max}일까지만 배정 가능합니다!`, 'warning');
+        }
+
+        // Expose functions globally for inline HTML onclick attributes
+        window.switchView = function(viewId) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`nav-${viewId}`).classList.add('active');
+
+            document.querySelectorAll('.view-section').forEach(view => {
+                view.classList.remove('active');
+            });
+            setTimeout(() => {
+                document.getElementById(`view-${viewId}`).classList.add('active');
+            }, 10);
+
+            if (viewId === 'detail') {
+                const subMenuContainer = document.getElementById('course-selector-container');
+                if (subMenuContainer.innerHTML.trim() === '') {
+                    window.showTrack('common');
+                }
+            }
+        };
+
+        window.showTrack = function(trackKey) {
+            const btnStyles = {
+                'common': { active: 'bg-indigo-100 text-indigo-800 border-indigo-300 shadow-md ring-1 ring-indigo-400', inactive: 'bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50' },
+                'data': { active: 'bg-blue-100 text-blue-800 border-blue-300 shadow-md ring-1 ring-blue-400', inactive: 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50' },
+                'factory': { active: 'bg-emerald-100 text-emerald-800 border-emerald-300 shadow-md ring-1 ring-emerald-400', inactive: 'bg-white text-emerald-600 border-emerald-200 hover:bg-emerald-50' },
+                'arch': { active: 'bg-rose-100 text-rose-800 border-rose-300 shadow-md ring-1 ring-rose-400', inactive: 'bg-white text-rose-600 border-rose-200 hover:bg-rose-50' }
+            };
+            const baseClass = "px-4 py-2 rounded-lg font-bold text-sm border transition-all cursor-pointer";
+            Object.keys(btnStyles).forEach(key => {
+                const btn = document.getElementById(`btn-${key}`);
+                if(key === trackKey) btn.className = `${baseClass} ${btnStyles[key].active}`;
+                else btn.className = `${baseClass} ${btnStyles[key].inactive}`;
+            });
+
+            const data = curriculumData[trackKey];
+            const courseContainer = document.getElementById('course-selector-container');
+            courseContainer.innerHTML = ''; 
+            courseContainer.classList.remove('hidden');
+
+            data.courses.forEach((course, index) => {
+                const btn = document.createElement('button');
+                btn.className = `course-btn px-4 py-2 rounded-full text-sm font-semibold border transition-all cursor-pointer flex items-center shadow-sm`;
+                btn.id = `btn-course-${trackKey}-${index}`;
+                const displayName = course.name.split(' [')[0]; 
+                btn.innerHTML = `<i class="fas fa-bookmark opacity-50 mr-2 text-xs"></i>${displayName}`;
+                btn.onclick = () => window.showCourse(trackKey, index);
+                courseContainer.appendChild(btn);
+            });
+
+            if (data.courses.length > 0) window.showCourse(trackKey, 0);
+            else document.getElementById('detailed-content-container').innerHTML = '';
+        };
+
+        window.showCourse = function(trackKey, courseIndex) {
+            const data = curriculumData[trackKey];
+            const course = data.courses[courseIndex];
+
+            const inactiveClass = "bg-white text-slate-600 border-slate-300 hover:bg-slate-100";
+            const activeClass = `bg-${data.color}-600 text-white border-${data.color}-600 transform scale-[1.02]`;
+
+            document.querySelectorAll('.course-btn').forEach(btn => {
+                btn.classList.remove(...activeClass.split(' '));
+                btn.classList.add(...inactiveClass.split(' '));
+                btn.querySelector('i').classList.remove('opacity-100');
+                btn.querySelector('i').classList.add('opacity-50');
+            });
+
+            const activeBtn = document.getElementById(`btn-course-${trackKey}-${courseIndex}`);
+            if (activeBtn) {
+                activeBtn.classList.remove(...inactiveClass.split(' '));
+                activeBtn.classList.add(...activeClass.split(' '));
+                activeBtn.querySelector('i').classList.remove('opacity-50');
+                activeBtn.querySelector('i').classList.add('opacity-100');
+            }
+
+            const container = document.getElementById('detailed-content-container');
+            let html = `
+            <div class="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm animate-[fadeIn_0.3s_ease-out]">
+                <div class="bg-slate-200 px-5 py-4 border-b border-slate-300 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm mr-4">
+                            <i class="fas fa-book-open text-${data.color}-600 text-lg"></i>
+                        </div>
+                        <h4 class="font-extrabold text-xl text-slate-800 tracking-tight">${course.name.split(' [')[0]}</h4>
+                    </div>
+                    <span class="bg-slate-600 text-white text-xs font-bold px-3 py-1 rounded-full">${course.name.split(' [')[1].replace(']', '')}</span>
+                </div>
+                <div class="bg-white px-6 py-4 border-b border-slate-200">
+                    <div class="flex items-start">
+                        <div class="text-${data.color}-500 mt-0.5 mr-3 text-lg"><i class="fas fa-bullseye"></i></div>
+                        <div>
+                            <h5 class="text-sm font-bold text-slate-700 mb-1">과정 목표</h5>
+                            <p class="text-sm text-slate-600 leading-relaxed">${course.goal}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6 space-y-8">
+            `;
+            
+            course.days.forEach(day => {
+                const isOnline = day.day.includes('온라인');
+                const badgeClass = isOnline ? `bg-${data.color}-100 text-${data.color}-800 border-${data.color}-200` : 'bg-slate-700 text-white border-slate-800';
+                
+                html += `
+                    <div>
+                        <div class="flex items-center mb-3">
+                            <h5 class="font-bold text-base px-3 py-1.5 rounded border ${badgeClass} shadow-sm">${day.day}</h5>
+                            <div class="flex-1 border-b border-slate-200 ml-4"></div>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
+                            <table class="w-full text-left text-sm bg-white">
+                                <thead class="bg-slate-100 text-slate-600">
+                                    <tr>
+                                        <th class="p-3.5 w-1/5 border-b font-bold tracking-wide min-w-[100px]">시간</th>
+                                        <th class="p-3.5 w-3/5 border-b font-bold tracking-wide">수업 내용</th>
+                                        <th class="p-3.5 w-1/5 border-b font-bold tracking-wide text-center min-w-[120px]">진행 방법</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                `;
+                
+                day.lessons.forEach(lesson => {
+                    html += `
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="p-3.5 text-${data.color}-700 font-semibold bg-slate-50/50">${lesson.time}</td>
+                                        <td class="p-3.5 text-slate-800 font-medium leading-relaxed">${lesson.content}</td>
+                                        <td class="p-3.5 text-center text-slate-600 text-xs font-semibold">
+                                            <span class="bg-white border border-slate-200 px-2.5 py-1 rounded shadow-sm inline-block">${lesson.method}</span>
+                                        </td>
+                                    </tr>
+                    `;
+                });
+
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    <div class="text-center mt-8 pt-5 border-t border-slate-200 bg-slate-100 rounded-lg p-3">
+                        <span class="text-sm font-medium text-slate-600"><i class="fas fa-check-circle mr-2 text-${data.color}-500"></i>본 상세 설계는 1일 3시간(1교시=1H) 기준으로 기획된 본 과정의 <strong>전체 일정표</strong>입니다.</span>
+                    </div>
+                </div>
+            </div>`;
+
+            container.innerHTML = html;
+        };
+
+        window.resetSchedule = function() {
+            const modal = document.getElementById('reset-modal');
+            modal.classList.remove('hidden');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            document.getElementById('reset-modal-content').classList.remove('scale-95');
+        };
+
+        window.closeResetModal = function() {
+            const modal = document.getElementById('reset-modal');
+            modal.classList.add('opacity-0');
+            document.getElementById('reset-modal-content').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        };
+
+        window.executeReset = function() {
+            const scheduleSelects = document.querySelectorAll('#schedule-tbody select');
+            scheduleSelects.forEach(select => {
+                select.value = "";
+                select.prevValue = "";
+                updateSelectColor(select);
+            });
+            updateAllocationStatus();
+            saveToFirebase(); // Firebase에 초기화 상태 저장
+            window.closeResetModal();
+        };
+
+        // Data & Logic for Dashboard and Firebase
+        const curriculumData = {
+            'common': {
+                title: '공통(초급)',
+                color: 'indigo',
+                courses: [
+                    {
+                        name: '[1학기] 프롬프트엔지니어링(몰입) [15H]',
+                        goal: '생성형 AI의 원리를 이해하고, 목적에 맞는 프롬프트를 작성하여 실무와 학습에 AI를 200% 활용하는 방법을 습득합니다.',
+                        days: [
+                            {
+                                day: '1일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '과정 오리엔테이션 및 AI 현황 이해, 계정 생성', method: '강의/실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: 'AI는 어떻게 대답하는가? (LLM 원리 쉽게 이해)', method: '강의/퀴즈 (오프라인)' },
+                                    { time: '3교시 (1H)', content: 'AI vs 사람 답변 비교 실습, 정리 및 성찰일지 작성', method: '모둠/개인 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '2일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '전일 복습, 나쁜 프롬프트 사례 분석 및 3요소(명확성/구체성/맥락) 학습', method: '강의/실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '같은 목적, 다른 프롬프트 적용 및 결과 비교 실습', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '프롬프트 개선 챌린지(짝 활동), OX 퀴즈 형성평가 및 정리', method: '협동학습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '3일차 (온라인)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'Role Prompting(역할 부여) 및 Context Prompting(배경 정보 제공)', method: '이론/실습 (온라인)' },
+                                    { time: '2교시 (1H)', content: 'Format Prompting: 원하는 템플릿 양식으로 출력 형식 지정하기', method: '이론/실습 (온라인)' },
+                                    { time: '3교시 (1H)', content: 'Chain-of-Thought(단계별 사고 유도) 실습 및 온라인 퀴즈 제출', method: '이론/평가 (온라인)' }
+                                ]
+                            },
+                            {
+                                day: '4일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '활용 시나리오(학업/취업/창작/업무) 소개 및 시나리오별 프롬프트 작성 실습', method: '강의/실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '모둠별 최고의 프롬프트 선정 및 결과물 개선 논의', method: '모둠활동 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '개선된 프롬프트 모둠 발표, 상호 피드백 및 다음 차시 안내', method: '발표/평가 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '5일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '프롬프트 북 개념 및 구조 안내, 나만의 프롬프트 북 제작 돌입', method: '강의/제작 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '분야별 10개 이상의 프롬프트를 담은 프롬프트 북 문서 완성', method: '개인제작 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '결과물 발표, 동료/강사 피드백, 우수작 공유 및 최종 성찰일지 작성', method: '발표/평가 (오프라인)' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        name: '[2학기] AI 디자인 씽킹(몰입) [15H]',
+                        goal: '사용자 중심의 문제 해결 방법론인 디자인 씽킹에 AI 도구를 접목하여 기획력과 창의적 문제 해결 능력을 기릅니다.',
+                        days: [
+                            {
+                                day: '1일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '과정 오리엔테이션 및 팀 빌딩, 문제 해결을 위한 공감(Empathize) 기초 실습', method: '토의/실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '타겟 사용자 분석 및 주변의 일상 문제 발굴 브레인스토밍', method: '조별실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '협업 툴(Miro) 환경 세팅 안내 및 가상 인터뷰 챗봇 테스트', method: '실습안내 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '2일차 (온라인)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '디자인 씽킹 5단계 프로세스의 직관적 이해 및 이론', method: '이론강의 (온라인)' },
+                                    { time: '2교시 (1H)', content: 'AI 기술이 바꾼 최신 서비스 기획 및 프로토타이핑 트렌드 분석', method: '사례연구 (온라인)' },
+                                    { time: '3교시 (1H)', content: '데이터 수집 방법론 및 타겟 고객 여정 지도(CJ)의 중요성 파악', method: '이론/퀴즈 (온라인)' }
+                                ]
+                            },
+                            {
+                                day: '3일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '사용자 경험 매핑: 고객 여정 지도(Customer Journey Map) 뼈대 잡기', method: '이론/실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: 'weeai 생성 데이터를 반영한 여정 내 Pain-point 구체화', method: '조별실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: 'Miro를 활용한 조별 고객 여정 지도 시각화 및 발표', method: '조별실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '4일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '아이디에이션(Ideation): 문제를 해결할 다양한 아이디어 발산', method: '브레인스토밍 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '실현 가능성과 임팩트 매트릭스를 활용한 핵심 아이디어 선정', method: '토의/실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '최소 기능 제품(MVP) 및 프로토타입 기초 스토리보드 작성', method: '조별실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '5일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'AI 프로토타이핑 도구(Miro, v0.dev 등)를 활용한 MVP 스케치', method: '조별실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '사용자 시나리오를 바탕으로 프로토타입 디자인 완성', method: '조별실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '조별 디자인 씽킹 결과물(MVP) 최종 시연 및 상호 피드백', method: '발표/평가 (오프라인)' }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            'data': {
+                title: 'AI 데이터SW(컴공)',
+                color: 'blue',
+                courses: [
+                    {
+                        name: '[1학기] 클라우드입문 (몰입) [15H]',
+                        goal: '클라우드 컴퓨팅의 기본 개념을 이해하고, AWS 핵심 서비스(EC2, S3 등)를 직접 다루며 인프라 구축의 기초를 다집니다.',
+                        days: [
+                            {
+                                day: '1일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '과정 오리엔테이션 및 실습을 위한 AWS Educate/프리티어 계정 생성', method: '실습안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: 'AWS 콘솔 대시보드 화면 구성 파악 및 보안(MFA) 기본 세팅', method: '시연/실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '가상머신(EC2) 개념 맛보기 및 나만의 첫 EC2 인스턴스 생성 테스트', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '2일차 (온라인)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '클라우드 컴퓨팅(IaaS, PaaS, SaaS)의 개념 완벽 이해', method: '이론강의 (온라인)' },
+                                    { time: '2교시 (1H)', content: '온프레미스와 클라우드 인프라의 결정적 차이와 경제성 파악', method: '이론강의 (온라인)' },
+                                    { time: '3교시 (1H)', content: 'AWS 글로벌 인프라(리전, 가용영역) 및 핵심 서비스 라인업 소개', method: '이론/퀴즈 (온라인)' }
+                                ]
+                            },
+                            {
+                                day: '3일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '클라우드 보안의 핵심: IAM(Identity and Access Management) 실습', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '생성한 EC2 인스턴스에 SSH 클라이언트를 이용한 원격 접속', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '리눅스(Linux) 기초 명령어 실습 및 기본 웹 서버 구동 확인', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '4일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '무제한 저장소 AWS S3 객체 스토리지 버킷 생성 및 권한 설정', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '간단한 정적 웹 페이지(HTML/CSS) 작성 및 S3 파일 업로드', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: 'S3 정적 웹사이트 호스팅 기능을 이용해 내 페이지 인터넷 퍼블리싱', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '5일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '독립된 가상 네트워크(VPC, 서브넷, 인터넷 게이트웨이) 구축 실습', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '새로운 VPC 안에 EC2를 배치하고 방화벽(보안 그룹) 규칙 세밀하게 조정', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '비용 폭탄 방지(Billing 알람) 설정 및 CloudWatch 기초 모니터링', method: '마무리/평가 (오프라인)' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        name: '[1학기] ML/딥러닝 기초 [15H]',
+                        goal: '수식 없이 직관적인 노코드/로우코드 툴을 활용하여 머신러닝/딥러닝 모델의 학습 원리와 데이터 분석 기초를 체험합니다.',
+                        days: [
+                            {
+                                day: '1일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '과정 오리엔테이션 및 인공지능의 학습 방식(강아지/고양이 구별법) 시연', method: '강의/시연 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '구글 티처블 머신(Teachable Machine) UI 접속 및 웹캠 연동 셋팅', method: '실습안내 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '웹캠 활용 가위/바위/보 객체 이미지 수집, 학습 및 실시간 분류 테스트', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '2일차 (온라인)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '인공지능, 머신러닝, 딥러닝의 명확한 차이와 발전 역사', method: '이론강의 (온라인)' },
+                                    { time: '2교시 (1H)', content: '지도학습(정답이 있는)과 비지도학습(정답이 없는) 알고리즘 분류', method: '이론강의 (온라인)' },
+                                    { time: '3교시 (1H)', content: '머신러닝의 양대 산맥: 분류(Classification)와 회귀(Regression)의 차이', method: '이론/퀴즈 (온라인)' }
+                                ]
+                            },
+                            {
+                                day: '3일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'AI가 공부하는 책, 데이터 셋(Train, Validation, Test) 분할 개념', method: '이론강의 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '과적합(Overfitting) 방지 및 모델 평가 지표(정확도 등) 기초', method: '이론강의 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '학습된 모델의 정확도 테스트 및 인식률 저하(한계점) 체험 개선 실습', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '4일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '코딩 없는 데이터 분석 툴, Orange Data Mining 설치 및 노드 연결 방식 파악', method: '실습안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '엑셀(CSV) 데이터셋 불러오기 및 Data Table 노드를 통한 원시 데이터 구조 확인', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: 'Scatter Plot 등 시각화 노드를 활용해 데이터 피처간 연관성 흐름 파악하기', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '5일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '의사결정나무(Decision Tree) 노드 연결을 통한 타겟 값(생존/사망 등) 예측 모델 생성', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '타이타닉 생존자 데이터를 직접 분석하고, 내가 살 수 있었을지 예측 테스트', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: 'Confusion Matrix 노드로 내 모델의 성적표(정확도) 도출 및 데이터 분석 과정 랩업', method: '마무리/평가 (오프라인)' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        name: '[1학기] LLM 애플리케이션(몰입) [30H]',
+                        goal: '파이썬 기초 문법을 익히고, weeai 및 OpenAI API 연동하여 나만의 맞춤형 AI 챗봇(RAG)과 웹 서비스를 개발합니다.',
+                        days: [
+                            {
+                                day: '1일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '과정 오리엔테이션 및 구글 코랩(Colab) 환경 구성, 단축키 실습', method: '실습안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: 'API 개념 직관적 이해 및 weeai/OpenAI API Key 발급, 환경변수 보안 세팅', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '파이썬 기본 입출력(print)으로 첫 코드 실행해보고 터미널 챗봇 뼈대 맛보기', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '2일차 (온라인)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '파이썬 데이터의 그릇, 변수와 기본 데이터 타입 파악', method: '온라인실습' },
+                                    { time: '2교시 (1H)', content: '상황에 따라 다른 길로 가는 if, elif, else 조건문 문법 기초', method: '온라인실습' },
+                                    { time: '3교시 (1H)', content: '데이터를 묶어서 관리하는 파이썬 리스트(List)와 딕셔너리 구조', method: '온라인실습' }
+                                ]
+                            },
+                            {
+                                day: '3일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '코드를 반복해서 실행해주는 for 문과 while 문의 문법 구조', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '자주 쓰는 코드를 하나로 묶는 함수(Function) 정의 및 매개변수', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '파이썬 외부 모듈과 라이브러리(import) 활용의 이해', method: '이론/실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '4일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '인터넷 통신 프로토콜(HTTP) 기초와 GET/POST 방식의 차이', method: '이론강의 (오프라인)' },
+                                    { time: '2교시 (1H)', content: 'REST API 데이터 규격인 JSON 포맷의 구조 분석 및 파싱(Parsing) 이론', method: '이론강의 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '파이썬 `requests` 라이브러리를 활용한 HTTP POST 요청 테스트', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '5일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'LLM API를 호출하여 질문을 전송하고 답변 받아보기 실습', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '복잡한 JSON 응답 데이터에서 실제 AI의 텍스트 답변 내용만 추출(파싱)하기', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '터미널 콘솔창에서 1회성 질문/답변이 구동되는 파이썬 스크립트 작성', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '6일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '리스트/딕셔너리를 활용하여 챗봇의 이전 대화 기록(Memory/Context)을 저장하는 로직 구현', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '무한 반복(while True) 문을 결합하여 대화가 끊기지 않는 콘솔 채팅 앱 완성', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '시스템(System) 프롬프트를 변수로 처리하여 챗봇에 페르소나(예: 다정한 선생님) 입히기', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '7일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '할루시네이션(거짓말)을 잡는 RAG(검색 증강 생성) 아키텍처 개요 및 작동 원리 이해', method: '이론강의 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '텍스트 분할(Chunking)과 자연어를 숫자로 바꾸는 임베딩(Embedding)의 기초 원리', method: '이론/실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '벡터 데이터베이스(Vector DB)의 역할 및 내 문서 업로드, 유사도 검색 맛보기', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '8일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'weeai 플랫폼(또는 Langchain)을 활용한 나만의 문서 기반 RAG 파이프라인 셋팅', method: '실습안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '문서에서 검색된 문맥(Context)을 조합하여 LLM에 전달하는 RAG 프롬프트 작성 실습', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '"문서에 없는 내용은 모른다고 답해" 등 할루시네이션 방지 방어 로직 적용 테스트', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '9일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '웹 개발 지식 없이 파이썬만으로 웹을 만드는 프레임워크(Streamlit) 개요 및 설치', method: '실습안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: 'Streamlit 텍스트 출력, 입력 폼(Input), 버튼 등 기본 웹 화면 UI 컴포넌트 실습', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '작성해둔 터미널 챗봇 API 로직을 Streamlit의 Submit 버튼 이벤트에 연결하여 웹 전환', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '10일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'Streamlit chat_message UI 컴포넌트를 활용한 실제 카카오톡/GPT 형태의 대화창 렌더링', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '완성된 내 문서 기반 AI 웹 챗봇 전체 구동 테스트, 에러 디버깅 및 코드 최적화', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: 'Streamlit Cloud(무료) 또는 Github를 활용한 퍼블릭 웹 서비스 배포 시연 및 프로젝트 랩업', method: '발표/배포 (오프라인)' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        name: '[2학기] NHN/AWS 멀티 클라우드 운영(몰입) [15H]',
+                        goal: '국내 클라우드 환경(NHN Cloud)과 글로벌 인프라(AWS)를 비교 실습하며 멀티 클라우드 아키텍처 운영 감각을 익힙니다.',
+                        days: [
+                            {
+                                day: '1일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '과정 오리엔테이션 및 NHN Cloud 콘솔 접속, 프로젝트 생성 실습', method: '실습안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '나만의 프라이빗 네트워크(VPC) 및 서브넷 기초 뼈대 구성 맛보기', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '방화벽(보안 그룹) 기본 세팅 및 인터넷 게이트웨이 연동 실습', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '2일차 (온라인)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'K-클라우드 산업 동향 및 공공/금융/의료 망 분리 클라우드 도입 요건 파악', method: '이론강의 (온라인)' },
+                                    { time: '2교시 (1H)', content: 'NHN Cloud 주요 인프라 아키텍처 및 AWS 서비스(EC2, S3 등)와의 1:1 용어 비교', method: '이론강의 (온라인)' },
+                                    { time: '3교시 (1H)', content: '가용 영역(AZ) 이중화 및 클라우드 네트워크 라우팅(Routing) 기본 이론 복습', method: '이론/퀴즈 (온라인)' }
+                                ]
+                            },
+                            {
+                                day: '3일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '구성해둔 NHN Cloud VPC 내부에 가상 인스턴스(서버) 스펙 산정 및 다중 생성', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '원격 접속용 키페어(Keypair) 관리 및 플로팅 IP(Public IP) 할당하여 접속하기', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '서버 환경에 기본 웹 서버(Nginx) 패키지 설치하고 외부에서 IP 접속 테스트', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '4일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '서버 트래픽 폭주 방지를 위한 로드밸런서(Load Balancer) L4/L7 스위치 분산 이론', method: '이론강의 (오프라인)' },
+                                    { time: '2교시 (1H)', content: 'NHN Cloud 로드밸런서 생성 및 다중 인스턴스(웹서버 A, B)를 타겟 그룹으로 연결', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '웹 서버 이중화 구성 완료 확인 및 로드밸런싱 포트(80)를 통한 접속 부하 분산 테스트', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '5일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '멀티 클라우드(AWS-NHN) 연계 아키텍처 설계 시 고려사항 및 서비스 통합 구성 예시', method: '이론강의 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '클라우드 인프라 자원(CPU, Memory) 모니터링 시스템 구축 개요 및 장애 알람 세팅', method: '시연/실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '서버 장애 발생(Stop) 시나리오 가정 및 백업/이중화를 통한 복구 시뮬레이션', method: '평가/마무리 (오프라인)' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        name: '[2학기] MLOps(몰입) [15H]',
+                        goal: '완성된 AI 모델이 서비스로 배포되고 관리되는 생애주기(MLOps)를 이해하고, 오픈소스 플랫폼을 통한 배포 실습을 진행합니다.',
+                        days: [
+                            {
+                                day: '1일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '과정 오리엔테이션, 버전 관리 시스템(Git) 설치 및 Github 계정 생성 연동', method: '실습안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '나만의 원격 저장소(Repository) 만들기 및 내 PC로 코드 내려받기(Clone) 실습', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '간단한 파이썬 스크립트 작성 및 로컬 변경 사항 서버로 올리기(Commit & Push)', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '2일차 (온라인)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '소프트웨어 개발 주기(DevOps)와 AI 모델 주기(MLOps)의 차이 및 필요성', method: '이론강의 (온라인)' },
+                                    { time: '2교시 (1H)', content: '데이터 수집 - 모델 학습 - 모델 배포(Serving) - 모니터링 MLOps 파이프라인 개념', method: '이론강의 (온라인)' },
+                                    { time: '3교시 (1H)', content: '오픈소스 AI 모델의 성지, Hugging Face 플랫폼의 구조와 Model/Dataset 생태계 탐색', method: '사례연구 (온라인)' }
+                                ]
+                            },
+                            {
+                                day: '3일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'Hugging Face에서 내 목적에 맞는 오픈소스 딥러닝 모델(예: 감성 분석) 검색 요령', method: '시연/실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '파이썬 Transformers 라이브러리를 활용해 로컬 환경으로 모델 다운로드 및 메모리 로드', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '테스트용 샘플 텍스트/이미지 데이터를 모델에 입력하여 로컬 추론(Inference) 테스트 진행', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '4일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '무료 AI 모델 배포 클라우드 플랫폼인 Hugging Face Spaces 환경 소개 및 생성', method: '실습안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: 'Gradio 라이브러리를 활용한 단 5줄 코드로 끝나는 웹 데모 UI(입/출력창) 구성 뼈대 만들기', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '로드된 딥러닝 모델의 추론 함수와 Gradio 인터페이스(버튼 이벤트)와 결합하기', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '5일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '클라우드 서버 구동을 위한 의존성 패키지 명세서(requirements.txt) 작성 및 환경 설정', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: 'Git 명령어를 통해 작성한 모델 소스 코드를 Hugging Face Spaces 플랫폼에 최종 Push', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '배포된 AI 웹 서비스 접속 후 작동 확인 및 MLOps 전체 과정 리뷰', method: '발표/리뷰 (오프라인)' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        name: '[2학기] Cloud Native 아키텍처(몰입) [15H]',
+                        goal: '현대 애플리케이션의 핵심인 컨테이너(Docker)의 원리를 이해하고, 앱을 패키징하여 클라우드에 배포하는 능력을 기릅니다.',
+                        days: [
+                            {
+                                day: '1일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '과정 오리엔테이션, 컨테이너 실습을 위한 Docker Desktop 설치 및 환경 구성 검증', method: '실습안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '터미널에서 Docker 데몬 상태 확인 및 "Hello-World" 컨테이너 이미지 구동 테스트', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '컨테이너 라이프사이클 관리를 위한 필수 CLI 명령어(pull, run, ps, rm) 기초 맛보기', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '2일차 (온라인)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '소프트웨어 아키텍처의 진화: 거대한 모놀리식(Monolithic) vs 유연한 MSA 구조의 차이', method: '이론강의 (온라인)' },
+                                    { time: '2교시 (1H)', content: '무거운 가상머신(VM) 하이퍼바이저와 가벼운 컨테이너(Container) 기술의 아키텍처 비교', method: '이론강의 (온라인)' },
+                                    { time: '3교시 (1H)', content: 'Docker 엔진 핵심 구조(Client, Host, Registry) 및 이미지/컨테이너 개념 완벽 이해', method: '이론/퀴즈 (온라인)' }
+                                ]
+                            },
+                            {
+                                day: '3일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'Docker Registry(Hub)의 역할, 이미지 검색 방법 및 버전(Tag) 네이밍 룰 파악', method: '이론/실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '컨테이너간 통신을 위한 내부 브릿지 네트워크 및 데이터 영속성을 위한 볼륨 기초', method: '이론/실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '공개된 Nginx 웹 서버 이미지를 로컬 컨테이너로 띄워 포트포워딩 접속하기', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '4일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'HTML/CSS를 활용한 간단한 나만의 정적 웹 페이지 작성', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '작성한 웹 코드를 포함하는 커스텀 Nginx Dockerfile 작성 및 빌드(Build)', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '빌드된 커스텀 이미지를 로컬 컨테이너로 실행하고 오류 발생 시 디버깅', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '5일차 (오프라인 실습)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'Docker Hub 계정 연동 및 내 이미지를 퍼블릭 레지스트리에 Push', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: 'NHN Cloud 인스턴스 환경(또는 실습 서버) 접속 및 Docker 환경 준비', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '클라우드 환경에서 내 이미지 Pull & Run으로 서비스 실 배포 완료', method: '시연/평가 (오프라인)' }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            'factory': {
+                title: '제조AI(기계자동차)',
+                color: 'emerald',
+                courses: [
+                    {
+                        name: '[1학기] 제조설비 AI모델링 [30H]',
+                        goal: '제조 현장의 AI 활용 사례를 이해하고, 센서 데이터를 시각화하며 이상 탐지 및 불량 예측 모델을 직접 실행·해석하여 실제 현장 적용 방안을 제안할 수 있습니다.',
+                        days: [
+                            {
+                                day: '1일차 (오프라인 실습) - 제조 현장과 AI',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '과정 오리엔테이션 및 데이터 기반 문제 해결 프로세스 안내', method: '강의/안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '제조 AI 핵심 개념과 실제 산업 적용 사례 시청', method: '사례연구 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '"왜 AI인가?" 비전공자 눈높이에 맞춘 제조 현장의 문제 해결 경험', method: '토의/실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '2일차 (온라인) - 센서와 데이터란?',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '일상 속 센서(스마트폰 등) 비유를 통한 제조 센서 개념 이해', method: '이론/비유 (온라인)' },
+                                    { time: '2교시 (1H)', content: '실습에 활용할 제조 설비(진동/온도 등) 데이터셋(CSV) 구조 파악', method: '사례분석 (온라인)' },
+                                    { time: '3교시 (1H)', content: '센서 데이터가 시스템에 수집되고 축적되는 과정의 시각적 이해', method: '이론/시연 (온라인)' }
+                                ]
+                            },
+                            {
+                                day: '3일차 (오프라인 실습) - 데이터 읽기',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'Google Colab 환경 세팅 및 파이썬 데이터 분석 기초 실습', method: '실습안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '준비된 제조 데이터셋(CSV)을 Colab 환경에 불러오기', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '기본 코드(Pandas)를 활용하여 데이터 정보(행/열) 및 결측치 확인', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '4일차 (오프라인 실습) - 데이터 시각화',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '보이지 않는 데이터를 보이게 만드는 센서 데이터 시각화의 중요성', method: '이론강의 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '파이썬 코드로 기본 시계열 그래프 및 분포도 그리기 실습', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '출력된 센서 데이터 그래프의 추세 및 비정상 패턴 시각적 해석', method: '사례분석 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '5일차 (오프라인 실습) - 데이터 전처리 1',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '결측치(빠진 데이터) 및 이상치(튀는 데이터)의 개념과 모델에 미치는 영향', method: '이론/비유 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '파이썬 코드를 활용한 결측치 채우기 및 이상치 제거 전처리 실습', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '전처리 전후의 데이터 변화 시각적 비교 및 정제 결과 토의', method: '해석토의 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '6일차 (오프라인 실습) - 데이터 전처리 2 (데이터 변형)',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '기존 데이터 조합을 통한 직관적인 파생 변수(Feature) 생성 개념', method: '이론강의 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '강사 시연 후 학생 주도형으로 진행하는 제조 파생 변수 추가 실습', method: '강의/시연 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '새롭게 변형된 데이터가 불량 예측 분석에 어떻게 유리해지는지 해석', method: '해석토의 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '7일차 (오프라인 실습) - AI 모델 학습',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '머신러닝 알고리즘의 직관적 이해 (입력 데이터와 불량 여부의 관계 학습)', method: '이론/비유 (오프라인)' },
+                                    { time: '2교시 (1H)', content: 'Scikit-learn 라이브러리를 활용한 기본 분류(Classification) 모델 구동', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '전처리된 데이터를 입력하여 모델 학습을 완료하고 1차 정답률 확인', method: '결과확인 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '8일차 (오프라인 실습) - 모델 평가',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '"불량품을 놓침" vs "정상품을 불량으로 오해" 등 상황 기반 평가 지표 이해', method: '상황설명 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '혼동행렬(Confusion Matrix) 출력 코드 실행 및 지표(정밀도/재현율) 분석', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '시각화된 평가 결과를 바탕으로 우리 모델의 제조 현장 적용 가능성 토의', method: '해석토의 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '9일차 (오프라인 실습) - 이상 탐지 실습',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '데이터 속 숨은 불량을 찾는 이상 탐지(Anomaly Detection) 모델 개념', method: '개념안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '이상 탐지 알고리즘 코드를 실행하여 정상 데이터 속 미세 불량 도출', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '도출된 이상치 결과를 바탕으로 공정 불량 원인 해석 및 브레인스토밍', method: '해석토의 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '10일차 (오프라인 실습) - 미니 프로젝트',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '제공된 기획 템플릿을 활용하여 조별 제조 AI 분석 과정 및 결과 정리', method: '조별실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '단일 제조 데이터셋 기반 불량 예측 모델링 스토리 조별 최종 발표', method: '발표/평가 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '강사 피드백 및 "데이터로 문제를 해결하는 경험" 성찰일지 작성 마무리', method: '마무리 (오프라인)' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        name: '[2학기] Digital Twin 기반 공정 시뮬레이션 [30H]',
+                        goal: 'Digital Twin의 개념과 제조 현장 활용 사례를 이해하고, 파이썬(SimPy)을 활용한 공정 시뮬레이션 코드를 실행 및 해석하여, 파라미터 최적화 실험과 결과 시각화를 통해 공정 개선 방안을 제안할 수 있습니다.',
+                        days: [
+                            {
+                                day: '1일차 (오프라인 실습) - Digital Twin이란?',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '과정 오리엔테이션 및 Digital Twin(DT)의 기본 개념 이해', method: '강의/안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '게임 속 가상 세계 비유를 통한 DT와 시뮬레이션의 차이 파악', method: '이론/비유 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '실제 제조 현장의 DT 도입 우수 사례 및 기대 효과 영상 분석', method: '사례연구 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '2일차 (온라인) - 시뮬레이션 개념 이해',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '공정 시뮬레이션의 목적과 필수 구성 요소(엔티티, 자원, 시간) 파악', method: '이론강의 (온라인)' },
+                                    { time: '2교시 (1H)', content: '제조 데이터의 흐름과 시뮬레이션 이벤트의 순차적 관계 시각적 이해', method: '이론/시연 (온라인)' },
+                                    { time: '3교시 (1H)', content: '데이터 기반 의사결정을 위한 시뮬레이션 결과(로그) 분석의 중요성', method: '사례분석 (온라인)' }
+                                ]
+                            },
+                            {
+                                day: '3일차 (오프라인 실습) - Python 시뮬레이션 기초',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'Google Colab 환경 세팅 및 파이썬 SimPy 라이브러리 활용 준비', method: '실습안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '강사가 제공한 SimPy 기초 시뮬레이션 코드 블록 복사/붙여넣기 실행', method: '코드복붙 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '코드 내 주요 변수(도착 시간, 작업 시간)의 의미 파악 및 수정 테스트', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '4일차 (오프라인 실습) - 단순 공정 시뮬레이션',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '1단계 단순 공정(기계 1대) 시뮬레이션 모델링 코드 구조 읽기 및 실행', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '시뮬레이션 실행 후 출력되는 로그(Log) 및 대기 시간 데이터 확인', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '출력 결과를 바탕으로 기계의 가동률 및 작업 지연 원인 시각적 해석', method: '사례분석 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '5일차 (오프라인 실습) - 다단계 공정 모델링',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '단일 기계를 넘어 여러 단계로 이어지는 연속 공정의 흐름 이해', method: '이론강의 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '\'레고 블록 쌓기\' 비유를 통한 다단계 시뮬레이션 코드 블록 조립 실습', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '공정 단계 추가 시뮬레이션 구동 및 단계별 소요 시간 산출 결과 해석', method: '해석토의 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '6일차 (오프라인 실습) - 병목 현상 분석',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '공정 효율을 떨어뜨리는 병목 현상(Bottleneck) 개념 ("줄이 가장 긴 곳" 비유)', method: '이론/비유 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '준비된 시뮬레이션 코드를 실행하여 다단계 공정 중 대기열 발생 지점 찾기', method: '코드복붙 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '도출된 로그 데이터를 통해 병목 지점을 특정하고 원인 분석 브레인스토밍', method: '해석토의 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '7일차 (오프라인 실습) - 파라미터 실험',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '공정 성능 파라미터(투입 인원, 기계 수) 개념 ("요리 레시피 변경" 비유)', method: '상황설명 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '코드 내 주요 수치를 직접 변경하며 여러 가지 시나리오 시뮬레이션 반복 구동', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '파라미터 변경 전/후의 공정 대기 시간 및 총 생산량 변화량 기록 분석', method: '결과확인 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '8일차 (오프라인 실습) - 최적 조건 탐색',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '다양한 파라미터 실험 결과를 표(엑셀/데이터프레임) 형태로 수집하고 정리', method: '개인실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '조별로 실험 결과 표를 비교 분석하여 비용 대비 효율이 가장 높은 최적 조건 도출', method: '조별실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '"왜 이 조건이 최적의 솔루션인가?" 논리적 근거 마련 및 최적화 방안 토의', method: '해석토의 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '9일차 (오프라인 실습) - 결과 시각화',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '시뮬레이션 결과 데이터를 설득력 있게 보여주기 위한 시각화 전략 안내', method: '개념안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '강사가 제공한 Matplotlib 연동 시뮬레이션 결과 시각화 차트 코드 실행', method: '코드복붙 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '시각화된 그래프를 바탕으로 공정 개선안(최적 조건)을 보여줄 발표 스토리보드 작성', method: '조별실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '10일차 (오프라인 실습) - 미니 프로젝트',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '제공된 발표 템플릿을 활용하여 조별 공정 최적화 시뮬레이션 결과 리포트 완성', method: '조별실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '조별 시뮬레이션 기반 의사결정(개선 방안) 최종 결과 발표 진행 및 상호 피드백', method: '발표/평가 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '강사 피드백 및 "Digital Twin 기반 공정 최적화" 전체 과정 성찰일지 작성 마무리', method: '마무리 (오프라인)' }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            'arch': {
+                title: 'AIAD(건축)',
+                color: 'rose',
+                courses: [
+                    {
+                        name: '[1학기] AI Data 분석 및 시각화 [15H]',
+                        goal: '건축·도시 분야에서 데이터와 AI가 활용되는 사례를 이해하고, 제공된 공공 건축 데이터를 파이썬으로 분석 및 시각화(그래프/지도)하여 건축 관련 의사결정 인사이트를 도출할 수 있습니다.',
+                        days: [
+                            {
+                                day: '1일차 (오프라인 실습) - 건축과 AI 데이터',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '과정 오리엔테이션 및 AI가 설계한 건축 이미지 감상, AI 건축 활용 사례 탐구', method: '강의/토의 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '건축 데이터(정량, 위치, 시계열) 종류 파악 및 "건축 의사결정"에서 데이터의 중요성 안내', method: '강의/안내 (오프라인)' },
+                                    { time: '3교시 (1H)', content: 'ChatGPT를 활용한 AI 건축 미래 상상 토론 및 1일차 성찰일지 작성', method: '조별토의 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '2일차 (오프라인 실습) - 건축 데이터 탐색',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: 'Google Colab 환경 세팅 및 강사가 준비한 "완성된 건축 데이터셋(좌표 포함 CSV)" 업로드', method: '실습안내 (오프라인)' },
+                                    { time: '2교시 (1H)', content: 'Pandas 라이브러리 기초: 데이터 불러오기 및 구조(info, describe) 파악', method: '코드복붙 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '조건 필터링, 정렬을 활용하여 "어떤 건물을 지을지" 의사결정을 위한 핵심 정보 탐색 실습', method: '개인실습 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '3일차 (온라인) - 데이터 시각화',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '데이터 시각화 필요성 및 Matplotlib 기초: 용도별 건물 수 막대그래프 시각화 실습', method: '이론/실습 (온라인)' },
+                                    { time: '2교시 (1H)', content: 'Matplotlib 히스토그램을 활용한 건물 층수 분포 시각화 및 동네별 특성 시각적 해석', method: '온라인실습' },
+                                    { time: '3교시 (1H)', content: 'Matplotlib 산점도를 활용한 층수-면적 상관관계 분석 및 "의사결정" 관련 퀴즈 풀이(LMS)', method: '이론/평가 (온라인)' }
+                                ]
+                            },
+                            {
+                                day: '4일차 (오프라인 실습) - 지도 시각화',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '공간 데이터 시각화 동기유발 및 Folium 라이브러리를 활용한 기본 지도/마커 생성', method: '강의/실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '완성된 데이터셋의 위도/경도를 활용한 다중 마커 표시 및 건축물 정보 팝업 띄우기 실습', method: '개인실습 (오프라인)' },
+                                    { time: '3교시 (1H)', content: 'Folium 히트맵(HeatMap)을 활용한 건물 밀집 지역 시각화 및 "건축 입지 의사결정" 토의', method: '해석토의 (오프라인)' }
+                                ]
+                            },
+                            {
+                                day: '5일차 (오프라인 실습) - 미니 프로젝트 발표',
+                                lessons: [
+                                    { time: '1교시 (1H)', content: '미니 프로젝트 목표("건축 의사결정 제안") 및 루브릭 안내, 조별 분석 결과 최종 정리', method: '조별실습 (오프라인)' },
+                                    { time: '2교시 (1H)', content: '조별 건축 데이터 분석 인사이트("어디에 어떤 건물을 지을 것인가?") 발표 진행 및 동료 피드백', method: '발표/평가 (오프라인)' },
+                                    { time: '3교시 (1H)', content: '우수팀 시상 및 강사 총평, \'데이터 기반 건축 의사결정\' 과정 최종 성찰일지 작성 및 수료', method: '마무리 (오프라인)' }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        const courseLimits = {
+            '[1학기] 프롬프트엔지니어링(15H)': 5,
+            '[1학기] 클라우드입문(15H)': 5,
+            '[1학기] ML/딥러닝 기초(15H)': 5,
+            '[1학기] LLM 애플리케이션(30H)': 10,
+            '[1학기] 제조설비 AI모델링(30H)': 10,
+            '[1학기] AI Data 분석(15H)': 5,
+            '[2학기] AI 디자인 씽킹(15H)': 5,
+            '[2학기] NHN/AWS 멀티클라우드(15H)': 5,
+            '[2학기] MLOps(15H)': 5,
+            '[2학기] Cloud Native(15H)': 5,
+            '[2학기] Digital Twin(30H)': 10
+        };
+
+        function getCounts() {
+            const selects = document.querySelectorAll('.course-select');
+            let counts = {};
+            Object.keys(courseLimits).forEach(k => counts[k] = 0);
+            selects.forEach(sel => {
+                if (sel.value && counts[sel.value] !== undefined) {
+                    counts[sel.value]++;
+                }
+            });
+            return counts;
+        }
+
+        function updateAllocationStatus() {
+            const counts = getCounts();
+            let html = '';
+            for(let course in courseLimits) {
+                let max = courseLimits[course];
+                let current = counts[course];
+                
+                let badgeColor = 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'; 
+                if (current === max) badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-300 font-bold'; 
+                
+                let shortName = course.split('(')[0].replace(/\[.*?\] /, ''); 
+                html += `<span class="px-3 py-1.5 text-xs rounded-lg border shadow-sm transition-colors cursor-default ${badgeColor}">
+                            ${shortName} <span class="ml-1.5 font-bold ${current === max ? 'text-emerald-600' : 'text-slate-400'}">${current}/${max}일</span>
+                         </span>`;
+            }
+            const dashboard = document.getElementById('allocation-dashboard');
+            if(dashboard) dashboard.innerHTML = html;
+        }
+
+        function updateSelectColor(selectElement) {
+            const val = selectElement.value;
+            selectElement.classList.remove('sel-course-1', 'sel-course-2', 'sel-manager-eu', 'sel-manager-pe', 'sel-manager-aws', 'sel-manager-nhn');
+            
+            if (val === '으뜸') selectElement.classList.add('sel-manager-eu');
+            else if (val === '페픽') selectElement.classList.add('sel-manager-pe');
+            else if (val === 'AWS') selectElement.classList.add('sel-manager-aws');
+            else if (val === 'NHN') selectElement.classList.add('sel-manager-nhn');
+            else if (val.includes('[1학기]')) selectElement.classList.add('sel-course-1');
+            else if (val.includes('[2학기]')) selectElement.classList.add('sel-course-2');
+        }
+
+        // === FIREBASE REALTIME SYNC LOGIC ===
+        let isSyncing = false; 
+        let auth, db, appId;
+
+        async function saveToFirebase() {
+            if (isSyncing || !auth || !auth.currentUser || !db) return;
+            const selects = document.querySelectorAll('#schedule-tbody select');
+            const state = {};
+            selects.forEach((sel, index) => {
+                state[`sel_${index}`] = sel.value;
+            });
+            
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedule', 'global_state');
+                await setDoc(docRef, state);
+            } catch(e) { 
+                console.error("Firebase save error", e); 
+            }
+        }
+
+        function applySharedState(data) {
+            isSyncing = true; 
+            const selects = document.querySelectorAll('#schedule-tbody select');
+            selects.forEach((sel, index) => {
+                const key = `sel_${index}`;
+                if (data[key] !== undefined && sel.value !== data[key]) {
+                    sel.value = data[key];
+                    sel.prevValue = data[key]; 
+                    updateSelectColor(sel);
+                }
+            });
+            updateAllocationStatus();
+            isSyncing = false;
+        }
+
+        function initFirebase() {
+            appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            try {
+                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                    const config = JSON.parse(__firebase_config);
+                    const app = initializeApp(config);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    
+                    const initAuth = async () => {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    };
+                    
+                    initAuth();
+
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            document.getElementById('sync-status').innerHTML = '<i class="fas fa-cloud text-emerald-500 mr-1"></i>실시간 동기화 됨';
+                            document.getElementById('sync-status').classList.replace('text-slate-500', 'text-emerald-600');
+                            
+                            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedule', 'global_state');
+                            onSnapshot(docRef, (snapshot) => {
+                                if (snapshot.exists()) {
+                                    applySharedState(snapshot.data());
+                                }
+                            }, (error) => {
+                                console.error("Snapshot error:", error);
+                            });
+                        }
+                    });
+                } else {
+                    document.getElementById('sync-status').innerHTML = '<i class="fas fa-wifi text-slate-400 mr-1"></i>오프라인 모드';
+                }
+            } catch (e) {
+                console.error("Firebase Initialization Error:", e);
+                document.getElementById('sync-status').innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 mr-1"></i>저장 불가';
+            }
+        }
+
+        // Initialize DOM events
+        document.addEventListener('DOMContentLoaded', () => {
+            if(document.getElementById('view-detail').classList.contains('active')) {
+                window.showTrack('common');
+            }
+
+            // URL 데이터 로드 로직 제거 (일정 코드 텍스트 공유 방식으로 대체됨)
+
+            const scheduleSelects = document.querySelectorAll('#schedule-tbody select');
+            scheduleSelects.forEach(select => {
+                if (select.options.length > 1 && select.options[1].value.includes('학기')) {
+                    select.classList.add('course-select');
+                    select.prevValue = select.value;
+                    
+                    select.addEventListener('focus', function() {
+                        this.prevValue = this.value;
+                    });
+                    
+                    select.addEventListener('change', function() {
+                        if (isSyncing) return;
+                        const val = this.value;
+                        if (val) {
+                            const counts = getCounts();
+                            if (counts[val] > courseLimits[val]) {
+                                showWarningToast(val, courseLimits[val]);
+                                this.value = this.prevValue; 
+                                updateSelectColor(this); 
+                                return; 
+                            }
+                        }
+                        this.prevValue = this.value;
+                        updateSelectColor(this);
+                        updateAllocationStatus();
+                        saveToFirebase(); // Firebase 동기화
+                    });
+                } else {
+                    select.addEventListener('change', function() {
+                        if (isSyncing) return;
+                        updateSelectColor(this);
+                        saveToFirebase(); // Firebase 동기화
+                    });
+                }
+                updateSelectColor(select);
+            });
+            
+            updateAllocationStatus();
+            initFirebase(); 
+        });
+    </script>
+</body>
+</html>
